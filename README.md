@@ -20,7 +20,7 @@ Abstracts readiness/ liveness checks and graceful shutdown of Node.js services r
     * [Usage examples](#lightship-usage-examples)
         * [Using with Express.js](#lightship-usage-examples-using-with-express-js)
     * [FAQ](#lightship-faq)
-        * [What is the reason for separate `/live` and `/ready` endpoints?](#lightship-faq-what-is-the-reason-for-separate-live-and-ready-endpoints)
+        * [What is the reason for having separate `/live` and `/ready` endpoints?](#lightship-faq-what-is-the-reason-for-having-separate-live-and-ready-endpoints)
 
 
 <a name="lightship-behaviour"></a>
@@ -310,7 +310,7 @@ If for whatever reason a registered shutdown handler hangs, then (subject to the
 <a name="lightship-faq"></a>
 ## FAQ
 
-<a name="lightship-faq-what-is-the-reason-for-separate-live-and-ready-endpoints"></a>
-### What is the reason for separate <code>/live</code> and <code>/ready</code> endpoints?
+<a name="lightship-faq-what-is-the-reason-for-having-separate-live-and-ready-endpoints"></a>
+### What is the reason for having separate <code>/live</code> and <code>/ready</code> endpoints?
 
 Distinct endpoints are needed if you want your Container to be able to take itself down for maintenance (as done in the [Using with Express.js](#lightship-usage-examples-using-with-express-js) usage example). Otherwise, you can use `/health`.
