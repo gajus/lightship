@@ -1,5 +1,5 @@
 <a name="lightship"></a>
-# Lightship
+# Lightship 🚢
 
 [![Travis build status](http://img.shields.io/travis/gajus/lightship/master.svg?style=flat-square)](https://travis-ci.org/gajus/lightship)
 [![Coveralls](https://img.shields.io/coveralls/gajus/lightship.svg?style=flat-square)](https://coveralls.io/github/gajus/lightship)
@@ -9,7 +9,7 @@
 
 Abstracts readiness/ liveness checks and graceful shutdown of Node.js services running in Kubernetes.
 
-* [Lightship](#lightship)
+* [Lightship 🚢](#lightship)
     * [Behaviour](#lightship-behaviour)
         * [`/health`](#lightship-behaviour-health)
         * [`/live`](#lightship-behaviour-live)
