@@ -148,5 +148,10 @@ test('calling `shutdown` changes server state to SERVER_IS_SHUTTING_DOWN', async
   t.true(serviceState.ready.status === 500);
   t.true(serviceState.ready.message === SERVER_IS_NOT_READY);
 
-  await shutdown;
+  if (!shutdown) {
+    throw new Error('Unexpected state.');
+  }
+
+  await shutdown();
+});
 });
