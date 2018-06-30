@@ -88,7 +88,7 @@ The following types describe the configuration shape and the resulting Lightship
 /**
  * A teardown function called when shutdown is initialized.
  */
-type BeforeShutdownHandlerType = () => Promise<void> | void;
+type ShutdownHandlerType = () => Promise<void> | void;
 
 /**
  * @property port The port on which the Lightship service listens. This port must be different than your main service port, if any. The default port is 9000.
@@ -100,12 +100,13 @@ type LightshipConfigurationType = {|
 |};
 
 /**
+ * @property registerShutdownHandler Registers teardown functions that are called when shutdown is initialized. All registered shutdown handlers are executed in the order they have been registered. After all shutdown handlers have been executed, Lightship asks `process.exit()` to terminate the process synchronously.
  * @property shutdown Changes server state to SERVER_IS_SHUTTING_DOWN and initialises the shutdown of the application.
  * @property signalNotReady Changes server state to SERVER_IS_NOT_READY.
  * @property signalReady Changes server state to SERVER_IS_READY.
  */
 type LightshipType = {|
-  +registerShutdownHandler: (shutdownHandler: shutdownHandlerType) => void,
+  +registerShutdownHandler: (shutdownHandler: ShutdownHandlerType) => void,
   +shutdown: () => Promise<void>,
   +signalNotReady: () => void,
   +signalReady: () => void
@@ -302,9 +303,9 @@ lightship.signalReady();
 
 ```
 
-You don't need to kill Node.js in a shutdown handler, e.g. using `process.exit()`. Your Node.js service will exit when the [event loop](https://nodejs.org/en/docs/guides/event-loop-timers-and-nexttick/)'s queue is empty, i.e. `server.close()` should be enough.
+Do not call `process.exit()` in a shutdown handler – Lighthouse calls `process.exit()` after all registered shutdown handlers have run to completion.
 
-Subject to the Pod's [restart policy](https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/#restart-policy), Kubernetes will forcefully restart the Container after the `livenessProbe` deems the service to be failed.
+If for whatever reason a registered shutdown handler hangs, then (subject to the Pod's [restart policy](https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/#restart-policy)) Kubernetes will forcefully restart the Container after the `livenessProbe` deems the service to be failed.
 
 <a name="lightship-faq"></a>
 ## FAQ

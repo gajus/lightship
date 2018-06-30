@@ -116,6 +116,9 @@ export default (userConfiguration?: LightshipConfigurationType): LightshipType =
     }
 
     server.close();
+
+    // eslint-disable-next-line no-process-exit
+    process.exit();
   };
 
   for (const signal of configuration.signals) {

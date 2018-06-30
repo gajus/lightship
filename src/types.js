@@ -15,6 +15,7 @@ export type LightshipConfigurationType = {|
 |};
 
 /**
+ * @property registerShutdownHandler Registers teardown functions that are called when shutdown is initialized. All registered shutdown handlers are executed in the order they have been registered. After all shutdown handlers have been executed, Lightship asks `process.exit()` to terminate the process synchronously.
  * @property shutdown Changes server state to SERVER_IS_SHUTTING_DOWN and initialises the shutdown of the application.
  * @property signalNotReady Changes server state to SERVER_IS_NOT_READY.
  * @property signalReady Changes server state to SERVER_IS_READY.
