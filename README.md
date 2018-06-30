@@ -76,9 +76,7 @@ import {
   createLightship
 } from 'lightship';
 
-const configuration: LightshipConfigurationType = {
-  onShutdown: () => {}
-};
+const configuration: LightshipConfigurationType = {};
 
 const lightship: LightshipType = createLightship(configuration);
 
@@ -88,13 +86,16 @@ The following types describe the configuration shape and the resulting Lightship
 
 ```js
 /**
+ * A teardown function called when shutdown is initialized.
+ */
+type BeforeShutdownHandlerType = () => Promise<void> | void;
+
+/**
  * @property port The port on which the Lightship service listens. This port must be different than your main service port, if any. The default port is 9000.
- * @property onShutdown A teardown function called when shutdown is initialized.
  * @property signals An a array of [signal events]{@link https://nodejs.org/api/process.html#process_signal_events}. Default: [SIGTERM].
  */
-export type LightshipConfigurationType = {|
+type LightshipConfigurationType = {|
   +port?: number,
-  +onShutdown: () => Promise<void> | void,
   +signals?: $ReadOnlyArray<string>
 |};
 
@@ -103,7 +104,8 @@ export type LightshipConfigurationType = {|
  * @property signalNotReady Changes server state to SERVER_IS_NOT_READY.
  * @property signalReady Changes server state to SERVER_IS_READY.
  */
-export type LightshipType = {|
+type LightshipType = {|
+  +registerShutdownHandler: (shutdownHandler: shutdownHandlerType) => void,
   +shutdown: () => Promise<void>,
   +signalNotReady: () => void,
   +signalReady: () => void
@@ -130,7 +132,8 @@ livenessProbe:
     path: /live
     port: 9000
   initialDelaySeconds: 10
-  # Allow sufficient amount of time for `onShutdown` teardown function (180 seconds = periodSeconds * failureThreshold).
+  # Allow sufficient amount of time (180 seconds = periodSeconds * failureThreshold)
+  # for the registered shutdown handlers to run to completion.
   periodSeconds: 30
   failureThreshold: 3
   successThreshold: 1
@@ -283,14 +286,14 @@ app.get('/', (req, res) => {
 
 const server = app.listen(8080);
 
-const lightship = createLightship({
-  onShutdown: () => {
-    // Allow sufficient amount of time to allow all of the existing
-    // HTTP requests to finish before terminating the service.
-    await delay(minute);
+const lightship = createLightship();
 
-    server.close();
-  }
+lightship.registerShutdownHandler(async () => {
+  // Allow sufficient amount of time to allow all of the existing
+  // HTTP requests to finish before terminating the service.
+  await delay(minute);
+
+  server.close();
 });
 
 // Lightship default state is "SERVER_IS_NOT_READY". Therefore, you must signal
@@ -299,7 +302,7 @@ lightship.signalReady();
 
 ```
 
-You don't need to kill Node.js in `onShutdown` hook, e.g. using `process.exit()`. Your Node.js service will exit when the [event loop](https://nodejs.org/en/docs/guides/event-loop-timers-and-nexttick/)'s queue is empty, i.e. `server.close()` should be enough.
+You don't need to kill Node.js in a shutdown handler, e.g. using `process.exit()`. Your Node.js service will exit when the [event loop](https://nodejs.org/en/docs/guides/event-loop-timers-and-nexttick/)'s queue is empty, i.e. `server.close()` should be enough.
 
 Subject to the Pod's [restart policy](https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/#restart-policy), Kubernetes will forcefully restart the Container after the `livenessProbe` deems the service to be failed.
 

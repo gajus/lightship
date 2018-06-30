@@ -21,8 +21,6 @@ type ServiceStateType = {|
   +ready: ProbeStateType
 |};
 
-const noop = () => {};
-
 const getServiceState = async (port: number = 9000): Promise<ServiceStateType> => {
   const health = await axios('http://127.0.0.1:' + port + '/health', {
     validateStatus: () => {
@@ -59,9 +57,7 @@ const getServiceState = async (port: number = 9000): Promise<ServiceStateType> =
 };
 
 test('server starts in SERVER_IS_NOT_READY state', async (t) => {
-  const lightship = createLightship({
-    onShutdown: noop
-  });
+  const lightship = createLightship();
 
   const serviceState = await getServiceState();
 
@@ -78,9 +74,7 @@ test('server starts in SERVER_IS_NOT_READY state', async (t) => {
 });
 
 test('calling `signalReady` changes server state to SERVER_IS_READY', async (t) => {
-  const lightship = createLightship({
-    onShutdown: noop
-  });
+  const lightship = createLightship();
 
   lightship.signalReady();
 
@@ -99,9 +93,7 @@ test('calling `signalReady` changes server state to SERVER_IS_READY', async (t) 
 });
 
 test('calling `signalNotReady` changes server state to SERVER_IS_NOT_READY', async (t) => {
-  const lightship = createLightship({
-    onShutdown: noop
-  });
+  const lightship = createLightship();
 
   lightship.signalReady();
   lightship.signalNotReady();
@@ -121,16 +113,14 @@ test('calling `signalNotReady` changes server state to SERVER_IS_NOT_READY', asy
 });
 
 test('calling `shutdown` changes server state to SERVER_IS_SHUTTING_DOWN', async (t) => {
+  const lightship = createLightship();
+
   let shutdown;
 
-  const onShutdown = () => {
+  lightship.registerShutdownHandler(() => {
     return new Promise((resolve) => {
       shutdown = resolve;
     });
-  };
-
-  const lightship = createLightship({
-    onShutdown
   });
 
   lightship.shutdown();

@@ -3,6 +3,7 @@
 import express from 'express';
 import Logger from '../Logger';
 import type {
+  ShutdownHandlerType,
   LightshipConfigurationType,
   LightshipType
 } from '../types';
@@ -17,16 +18,24 @@ const log = Logger.child({
   namespace: 'factories/createLightship'
 });
 
-const defaultSignals = [
-  'SIGTERM'
-];
+const defaultConfiguration = {
+  port: 9000,
+  signals: [
+    'SIGTERM'
+  ]
+};
 
-export default (configuration?: LightshipConfigurationType): LightshipType => {
+export default (userConfiguration?: LightshipConfigurationType): LightshipType => {
+  const shutdownHandlers: Array<ShutdownHandlerType> = [];
+
+  const configuration = {
+    ...defaultConfiguration,
+    ...userConfiguration
+  };
+
   const app = express();
 
-  const signals = configuration && configuration.signals || defaultSignals;
-
-  const server = app.listen(configuration && configuration.port || 9000);
+  const server = app.listen(configuration.port);
 
   let serverIsReady = false;
   let serverIsShuttingDown = false;
@@ -95,14 +104,14 @@ export default (configuration?: LightshipConfigurationType): LightshipType => {
     serverIsReady = false;
     serverIsShuttingDown = true;
 
-    if (configuration && configuration.onShutdown) {
-      await configuration.onShutdown();
+    for (const shutdownHandler of shutdownHandlers) {
+      await shutdownHandler();
     }
 
     server.close();
   };
 
-  for (const signal of signals) {
+  for (const signal of configuration.signals) {
     process.on(signal, () => {
       log.debug({
         signal
@@ -113,6 +122,9 @@ export default (configuration?: LightshipConfigurationType): LightshipType => {
   }
 
   return {
+    registerShutdownHandler: (shutdownHandler) => {
+      shutdownHandlers.push(shutdownHandler);
+    },
     shutdown,
     signalNotReady,
     signalReady
