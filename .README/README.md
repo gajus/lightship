@@ -29,6 +29,26 @@ The endpoint responds:
 * `500` status code, message "SERVER_IS_NOT_READY" when server is initialising.
 * `500` status code, message "SERVER_IS_SHUTTING_DOWN" when server is shutting down.
 
+Used for human inspection.
+
+### `/live`
+
+The endpoint responds:
+
+* `200` status code, message "SERVER_IS_NOT_SHUTTING_DOWN".
+* `500` status code, message "SERVER_IS_SHUTTING_DOWN".
+
+Used to configure liveness probe.
+
+### `/ready`
+
+The endpoint responds:
+
+* `200` status code, message "SERVER_IS_READY".
+* `500` status code, message "SERVER_IS_NOT_READY".
+
+Used to configure readiness probe.
+
 ## Usage
 
 Use `createLightship` to create an instance of Lightship.
@@ -80,13 +100,13 @@ This is an example of a reasonable [container probe](https://kubernetes.io/docs/
 ```yaml
 readinessProbe:
   httpGet:
-    path: /healthz
+    path: /ready
     port: 9000
   periodSeconds: 5
   initialDelaySeconds: 5
 livenessProbe:
   httpGet:
-    path: /healthz
+    path: /live
     port: 9000
   periodSeconds: 5
   initialDelaySeconds: 10

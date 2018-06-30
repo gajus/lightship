@@ -12,6 +12,8 @@ Abstracts readiness/ liveness checks and graceful shutdown of Node.js services r
 * [Lightship](#lightship)
     * [Behaviour](#lightship-behaviour)
         * [`/health`](#lightship-behaviour-health)
+        * [`/live`](#lightship-behaviour-live)
+        * [`/ready`](#lightship-behaviour-ready)
     * [Usage](#lightship-usage)
         * [Kubernetes container probe configuration](#lightship-usage-kubernetes-container-probe-configuration)
         * [Logging](#lightship-usage-logging)
@@ -37,6 +39,28 @@ The endpoint responds:
 * `200` status code, message "SERVER_IS_READY" when server is accepting new connections.
 * `500` status code, message "SERVER_IS_NOT_READY" when server is initialising.
 * `500` status code, message "SERVER_IS_SHUTTING_DOWN" when server is shutting down.
+
+Used for human inspection.
+
+<a name="lightship-behaviour-live"></a>
+### <code>/live</code>
+
+The endpoint responds:
+
+* `200` status code, message "SERVER_IS_NOT_SHUTTING_DOWN".
+* `500` status code, message "SERVER_IS_SHUTTING_DOWN".
+
+Used to configure liveness probe.
+
+<a name="lightship-behaviour-ready"></a>
+### <code>/ready</code>
+
+The endpoint responds:
+
+* `200` status code, message "SERVER_IS_READY".
+* `500` status code, message "SERVER_IS_NOT_READY".
+
+Used to configure readiness probe.
 
 <a name="lightship-usage"></a>
 ## Usage
@@ -91,13 +115,13 @@ This is an example of a reasonable [container probe](https://kubernetes.io/docs/
 ```yaml
 readinessProbe:
   httpGet:
-    path: /healthz
+    path: /ready
     port: 9000
   periodSeconds: 5
   initialDelaySeconds: 5
 livenessProbe:
   httpGet:
-    path: /healthz
+    path: /live
     port: 9000
   periodSeconds: 5
   initialDelaySeconds: 10

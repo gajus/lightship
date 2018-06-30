@@ -8,6 +8,7 @@ import type {
 } from '../types';
 import {
   SERVER_IS_NOT_READY,
+  SERVER_IS_NOT_SHUTTING_DOWN,
   SERVER_IS_READY,
   SERVER_IS_SHUTTING_DOWN
 } from '../states';
@@ -33,10 +34,26 @@ export default (configuration?: LightshipConfigurationType): LightshipType => {
   app.get('/health', (req, res) => {
     if (serverIsShuttingDown) {
       res.status(500).send(SERVER_IS_SHUTTING_DOWN);
-    } else if (serverIsReady === false) {
-      res.status(500).send(SERVER_IS_NOT_READY);
-    } else {
+    } else if (serverIsReady) {
       res.send(SERVER_IS_READY);
+    } else {
+      res.status(500).send(SERVER_IS_NOT_READY);
+    }
+  });
+
+  app.get('/live', (req, res) => {
+    if (serverIsShuttingDown) {
+      res.status(500).send(SERVER_IS_SHUTTING_DOWN);
+    } else {
+      res.send(SERVER_IS_NOT_SHUTTING_DOWN);
+    }
+  });
+
+  app.get('/ready', (req, res) => {
+    if (serverIsReady) {
+      res.send(SERVER_IS_READY);
+    } else {
+      res.status(500).send(SERVER_IS_NOT_READY);
     }
   });
 
@@ -75,6 +92,7 @@ export default (configuration?: LightshipConfigurationType): LightshipType => {
       return;
     }
 
+    serverIsReady = false;
     serverIsShuttingDown = true;
 
     if (configuration && configuration.onShutdown) {
