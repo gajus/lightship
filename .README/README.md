@@ -170,3 +170,9 @@ const lightship = createLightship({
 lightship.signalReady();
 
 ```
+
+## FAQ
+
+### What is the reason for separate `/live` and `/ready` endpoints?
+
+Distinct endpoints are needed if you want your Container to be able to take itself down for maintenance. Otherwise, you can use `/health`.
