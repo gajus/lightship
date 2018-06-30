@@ -71,7 +71,7 @@ The following types describe the configuration shape and the resulting Lightship
 ```js
 /**
  * @property port The port on which the Lightship service listens. This port must be different than your main service port, if any. The default port is 9000.
- * @property onShutdown A teardown function called to initialise the shutdown.
+ * @property onShutdown A teardown function called when shutdown is initialized.
  * @property signals An a array of [signal events]{@link https://nodejs.org/api/process.html#process_signal_events}. Default: [SIGTERM].
  */
 export type LightshipConfigurationType = {|
@@ -102,14 +102,19 @@ readinessProbe:
   httpGet:
     path: /ready
     port: 9000
-  periodSeconds: 5
   initialDelaySeconds: 5
+  periodSeconds: 5
+  failureThreshold: 1
+  successThreshold: 1
 livenessProbe:
   httpGet:
     path: /live
     port: 9000
-  periodSeconds: 5
   initialDelaySeconds: 10
+  # Allow sufficient amount of time for `onShutdown` teardown function (180 seconds = periodSeconds * failureThreshold).
+  periodSeconds: 30
+  failureThreshold: 3
+  successThreshold: 1
 
 ```
 
