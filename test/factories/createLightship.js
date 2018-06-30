@@ -156,7 +156,7 @@ test('calling `shutdown` changes server state to SERVER_IS_SHUTTING_DOWN', async
   await shutdown();
 });
 
-test.only('error thrown from within a shutdown handler does not interrupt the shutdown sequence', async (t) => {
+test('error thrown from within a shutdown handler does not interrupt the shutdown sequence', async (t) => {
   const lightship = createLightship();
 
   const shutdownHandler0 = sinon.spy(async () => {
