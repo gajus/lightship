@@ -1,0 +1,5 @@
+// @flow
+
+export const SERVER_IS_NOT_READY = 'SERVER_IS_NOT_READY';
+export const SERVER_IS_READY = 'SERVER_IS_READY';
+export const SERVER_IS_SHUTTING_DOWN = 'SERVER_IS_SHUTTING_DOWN';

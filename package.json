@@ -1,0 +1,78 @@
+{
+  "author": {
+    "email": "gajus@gajus.com",
+    "name": "Gajus Kuizinas",
+    "url": "http://gajus.com"
+  },
+  "ava": {
+    "require": [
+      "@babel/register"
+    ]
+  },
+  "dependencies": {
+    "delay": "^3.0.0",
+    "express": "^5.0.0-alpha.6",
+    "roarr": "^2.3.0",
+    "serialize-error": "^2.1.0"
+  },
+  "description": "Abstracts readiness/ liveness checks and graceful shutdown of Node.js services running in Kubernetes.",
+  "devDependencies": {
+    "@babel/cli": "^7.0.0-beta.51",
+    "@babel/core": "^7.0.0-beta.51",
+    "@babel/node": "^7.0.0-beta.51",
+    "@babel/plugin-transform-flow-strip-types": "^7.0.0-beta.51",
+    "@babel/preset-env": "^7.0.0-beta.51",
+    "@babel/register": "^7.0.0-beta.51",
+    "ava": "^1.0.0-beta.6",
+    "axios": "^0.18.0",
+    "babel-plugin-istanbul": "^5.0.0",
+    "coveralls": "^3.0.2",
+    "eslint": "^5.0.1",
+    "eslint-config-canonical": "^10.3.2",
+    "flow-bin": "^0.75.0",
+    "flow-copy-source": "^2.0.1",
+    "get-port": "^3.2.0",
+    "gitdown": "^2.5.2",
+    "husky": "^1.0.0-rc.9",
+    "nyc": "^13.0.0",
+    "semantic-release": "^15.6.1"
+  },
+  "engines": {
+    "node": ">6"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "npm run lint && npm run test"
+    }
+  },
+  "keywords": [
+    "kubernetes"
+  ],
+  "license": "BSD-3-Clause",
+  "main": "./dist/index.js",
+  "name": "lightship",
+  "nyc": {
+    "include": [
+      "src/**/*.js"
+    ],
+    "instrument": false,
+    "reporter": [
+      "text-lcov"
+    ],
+    "require": [
+      "@babel/register"
+    ],
+    "sourceMap": false
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/gajus/lightship"
+  },
+  "scripts": {
+    "build": "rm -fr ./dist && NODE_ENV=production babel ./src --out-dir ./dist --copy-files --source-maps && flow-copy-source src dist",
+    "generate-readme": "gitdown ./.README/README.md --output-file ./README.md",
+    "lint": "eslint ./src ./test && flow",
+    "test": "NODE_ENV=test ava --verbose --serial"
+  },
+  "version": "1.0.0"
+}
