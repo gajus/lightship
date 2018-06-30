@@ -1,6 +1,7 @@
 // @flow
 
 import express from 'express';
+import serializeError from 'serialize-error';
 import Logger from '../Logger';
 import type {
   ShutdownHandlerType,
@@ -105,7 +106,13 @@ export default (userConfiguration?: LightshipConfigurationType): LightshipType =
     serverIsShuttingDown = true;
 
     for (const shutdownHandler of shutdownHandlers) {
-      await shutdownHandler();
+      try {
+        await shutdownHandler();
+      } catch (error) {
+        log.error({
+          error: serializeError(error)
+        }, 'shutdown handler produced an error');
+      }
     }
 
     server.close();
