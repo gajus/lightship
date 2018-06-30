@@ -115,6 +115,8 @@ export default (userConfiguration?: LightshipConfigurationType): LightshipType =
       }
     }
 
+    log.debug('all shutdown handlers have run to completion; proceeding to terminate the Node.js process');
+
     server.close();
 
     // eslint-disable-next-line no-process-exit
