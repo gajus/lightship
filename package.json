@@ -10,7 +10,6 @@
     ]
   },
   "dependencies": {
-    "delay": "^3.0.0",
     "express": "^5.0.0-alpha.6",
     "roarr": "^2.3.0",
     "serialize-error": "^2.1.0"
@@ -27,6 +26,7 @@
     "axios": "^0.18.0",
     "babel-plugin-istanbul": "^5.0.0",
     "coveralls": "^3.0.2",
+    "delay": "^3.0.0",
     "eslint": "^5.0.1",
     "eslint-config-canonical": "^10.3.2",
     "flow-bin": "^0.75.0",

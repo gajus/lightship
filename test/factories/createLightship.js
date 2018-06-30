@@ -5,6 +5,7 @@ import test, {
   beforeEach
 } from 'ava';
 import sinon from 'sinon';
+import delay from 'delay';
 import axios from 'axios';
 import createLightship from '../../src/factories/createLightship';
 import {
@@ -154,4 +155,141 @@ test('calling `shutdown` changes server state to SERVER_IS_SHUTTING_DOWN', async
 
   await shutdown();
 });
+
+test.only('error thrown from within a shutdown handler does not interrupt the shutdown sequence', async (t) => {
+  const lightship = createLightship();
+
+  const shutdownHandler0 = sinon.spy(async () => {
+    throw new Error('test');
+  });
+
+  let shutdown;
+
+  const shutdownHandler1 = sinon.spy(() => {
+    return new Promise((resolve) => {
+      shutdown = resolve;
+    });
+  });
+
+  lightship.registerShutdownHandler(shutdownHandler0);
+  lightship.registerShutdownHandler(shutdownHandler1);
+
+  lightship.shutdown();
+
+  await delay(500);
+
+  if (!shutdown) {
+    throw new Error('Unexpected state.');
+  }
+
+  await shutdown();
+
+  t.true(shutdownHandler0.callCount === 1);
+  t.true(shutdownHandler1.callCount === 1);
+});
+
+test('calling `shutdown` multiple times results in shutdown handlers called once', async (t) => {
+  const lightship = createLightship();
+
+  let shutdown;
+
+  const shutdownHandler = sinon.spy(() => {
+    return new Promise((resolve) => {
+      shutdown = resolve;
+    });
+  });
+
+  lightship.registerShutdownHandler(shutdownHandler);
+
+  t.true(shutdownHandler.callCount === 0);
+
+  lightship.shutdown();
+
+  t.true(shutdownHandler.callCount === 1);
+
+  lightship.shutdown();
+
+  t.true(shutdownHandler.callCount === 1);
+
+  if (!shutdown) {
+    throw new Error('Unexpected state.');
+  }
+
+  await shutdown();
+});
+
+test('calling `signalReady` after `shutdown` does not have effect on server state', async (t) => {
+  const lightship = createLightship();
+
+  let shutdown;
+
+  lightship.registerShutdownHandler(() => {
+    return new Promise((resolve) => {
+      shutdown = resolve;
+    });
+  });
+
+  const serviceState0 = await getServiceState();
+
+  t.true(serviceState0.health.status === 500);
+  t.true(serviceState0.health.message === SERVER_IS_NOT_READY);
+
+  lightship.shutdown();
+
+  const serviceState1 = await getServiceState();
+
+  t.true(serviceState1.health.status === 500);
+  t.true(serviceState1.health.message === SERVER_IS_SHUTTING_DOWN);
+
+  lightship.signalReady();
+
+  const serviceState2 = await getServiceState();
+
+  t.true(serviceState2.health.status === 500);
+  t.true(serviceState2.health.message === SERVER_IS_SHUTTING_DOWN);
+
+  if (!shutdown) {
+    throw new Error('Unexpected state.');
+  }
+
+  await shutdown();
+});
+
+test('calling `signalNotReady` after `shutdown` does not have effect on server state', async (t) => {
+  const lightship = createLightship();
+
+  let shutdown;
+
+  lightship.registerShutdownHandler(() => {
+    return new Promise((resolve) => {
+      shutdown = resolve;
+    });
+  });
+
+  lightship.signalReady();
+
+  const serviceState0 = await getServiceState();
+
+  t.true(serviceState0.health.status === 200);
+  t.true(serviceState0.health.message === SERVER_IS_READY);
+
+  lightship.shutdown();
+
+  const serviceState1 = await getServiceState();
+
+  t.true(serviceState1.health.status === 500);
+  t.true(serviceState1.health.message === SERVER_IS_SHUTTING_DOWN);
+
+  lightship.signalNotReady();
+
+  const serviceState2 = await getServiceState();
+
+  t.true(serviceState2.health.status === 500);
+  t.true(serviceState2.health.message === SERVER_IS_SHUTTING_DOWN);
+
+  if (!shutdown) {
+    throw new Error('Unexpected state.');
+  }
+
+  await shutdown();
 });
