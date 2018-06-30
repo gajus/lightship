@@ -1,6 +1,10 @@
 // @flow
 
-import test from 'ava';
+import test, {
+  afterEach,
+  beforeEach
+} from 'ava';
+import sinon from 'sinon';
 import axios from 'axios';
 import createLightship from '../../src/factories/createLightship';
 import {
@@ -55,6 +59,14 @@ const getServiceState = async (port: number = 9000): Promise<ServiceStateType> =
     }
   };
 };
+
+beforeEach(() => {
+  sinon.stub(process, 'exit');
+});
+
+afterEach(() => {
+  process.exit.restore();
+});
 
 test('server starts in SERVER_IS_NOT_READY state', async (t) => {
   const lightship = createLightship();
