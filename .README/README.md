@@ -12,7 +12,7 @@ Abstracts readiness/ liveness checks and graceful shutdown of Node.js services r
 
 ## Behaviour
 
-Creates a HTTP service used to check [Container probes](https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/#container-probes).
+Creates a HTTP service used to check [container probes](https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/#container-probes).
 
 Refer to the following Kubernetes documentation for information about the readiness and liveness checks:
 
@@ -118,3 +118,50 @@ livenessProbe:
 `lightship` is using [Roarr](https://github.com/gajus/roarr) to implement logging.
 
 Set `ROARR_LOG=true` environment variable to enable logging.
+
+## Usage examples
+
+### Using with Express.js
+
+Suppose that you have Express.js application that simply respond "Hello, World!".
+
+```js
+import express from 'express';
+
+const app = express();
+
+app.get('/', (req, res) => {
+  res.send('Hello, World!');
+});
+
+app.listen(8080);
+
+```
+
+To create a liveness and readiness checks, simply create an instance of Lightship and use `onShutdown` hook to shutdown your server, e.g.
+
+```js
+import express from 'express';
+import {
+  createLightship
+} from 'lightship';
+
+const app = express();
+
+app.get('/', (req, res) => {
+  res.send('Hello, World!');
+});
+
+const server = app.listen(8080);
+
+const lightship = createLightship({
+  onShutdown: () => {
+    server.close();
+  }
+});
+
+// Lightship default state is "SERVER_IS_NOT_READY". Therefore, you must signal
+// that the server is now ready to accept connections.
+lightship.signalReady();
+
+```
