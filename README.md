@@ -169,7 +169,7 @@ app.listen(8080);
 
 ```
 
-To create a liveness and readiness checks, simply create an instance of Lightship and use `onShutdown` hook to shutdown your server, e.g.
+To create a liveness and readiness check, simply create an instance of Lightship and use `registerShutdownHandler` to register a server shutdown handler, e.g.
 
 ```js
 import express from 'express';
@@ -185,10 +185,10 @@ app.get('/', (req, res) => {
 
 const server = app.listen(8080);
 
-const lightship = createLightship({
-  onShutdown: () => {
-    server.close();
-  }
+const lightship = createLightship();
+
+lightship.registerShutdownHandler(() => {
+  server.close();
 });
 
 // Lightship default state is "SERVER_IS_NOT_READY". Therefore, you must signal
@@ -231,10 +231,10 @@ app.get('/', (req, res) => {
 
 const server = app.listen(8080);
 
-const lightship = createLightship({
-  onShutdown: () => {
-    server.close();
-  }
+const lightship = createLightship();
+
+lightship.registerShutdownHandler(() => {
+  server.close();
 });
 
 // Lightship default state is "SERVER_IS_NOT_READY". Therefore, you must signal
