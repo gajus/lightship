@@ -22,7 +22,9 @@ const log = Logger.child({
 const defaultConfiguration = {
   port: 9000,
   signals: [
-    'SIGTERM'
+    'SIGTERM',
+    'SIGHUP',
+    'SIGINT'
   ]
 };
 
