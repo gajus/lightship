@@ -27,6 +27,8 @@ export opaque type StateType =
  * @property signalReady Changes server state to SERVER_IS_READY.
  */
 export type LightshipType = {|
+  +isServerReady: () => boolean,
+  +isServerShuttingDown: () => boolean,
   +registerShutdownHandler: (shutdownHandler: ShutdownHandlerType) => void,
   +shutdown: () => Promise<void>,
   +signalNotReady: () => void,

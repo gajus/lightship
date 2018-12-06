@@ -136,6 +136,12 @@ export default (userConfiguration?: LightshipConfigurationType): LightshipType =
   }
 
   return {
+    isServerReady: () => {
+      return serverIsReady;
+    },
+    isServerShuttingDown: () => {
+      return serverIsShuttingDown;
+    },
     registerShutdownHandler: (shutdownHandler) => {
       shutdownHandlers.push(shutdownHandler);
     },

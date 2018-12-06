@@ -72,6 +72,9 @@ afterEach(() => {
 test('server starts in SERVER_IS_NOT_READY state', async (t) => {
   const lightship = createLightship();
 
+  t.true(lightship.isServerReady() === false);
+  t.true(lightship.isServerShuttingDown() === false);
+
   const serviceState = await getServiceState();
 
   t.true(serviceState.health.status === 500);
@@ -90,6 +93,9 @@ test('calling `signalReady` changes server state to SERVER_IS_READY', async (t) 
   const lightship = createLightship();
 
   lightship.signalReady();
+
+  t.true(lightship.isServerReady() === true);
+  t.true(lightship.isServerShuttingDown() === false);
 
   const serviceState = await getServiceState();
 
@@ -110,6 +116,9 @@ test('calling `signalNotReady` changes server state to SERVER_IS_NOT_READY', asy
 
   lightship.signalReady();
   lightship.signalNotReady();
+
+  t.true(lightship.isServerReady() === false);
+  t.true(lightship.isServerShuttingDown() === false);
 
   const serviceState = await getServiceState();
 
@@ -137,6 +146,9 @@ test('calling `shutdown` changes server state to SERVER_IS_SHUTTING_DOWN', async
   });
 
   lightship.shutdown();
+
+  t.true(lightship.isServerReady() === false);
+  t.true(lightship.isServerShuttingDown() === true);
 
   const serviceState = await getServiceState();
 
@@ -229,6 +241,9 @@ test('calling `signalReady` after `shutdown` does not have effect on server stat
     });
   });
 
+  t.true(lightship.isServerReady() === false);
+  t.true(lightship.isServerShuttingDown() === false);
+
   const serviceState0 = await getServiceState();
 
   t.true(serviceState0.health.status === 500);
@@ -236,12 +251,18 @@ test('calling `signalReady` after `shutdown` does not have effect on server stat
 
   lightship.shutdown();
 
+  t.true(lightship.isServerReady() === false);
+  t.true(lightship.isServerShuttingDown() === true);
+
   const serviceState1 = await getServiceState();
 
   t.true(serviceState1.health.status === 500);
   t.true(serviceState1.health.message === SERVER_IS_SHUTTING_DOWN);
 
   lightship.signalReady();
+
+  t.true(lightship.isServerReady() === false);
+  t.true(lightship.isServerShuttingDown() === true);
 
   const serviceState2 = await getServiceState();
 
@@ -268,6 +289,9 @@ test('calling `signalNotReady` after `shutdown` does not have effect on server s
 
   lightship.signalReady();
 
+  t.true(lightship.isServerReady() === true);
+  t.true(lightship.isServerShuttingDown() === false);
+
   const serviceState0 = await getServiceState();
 
   t.true(serviceState0.health.status === 200);
@@ -275,12 +299,18 @@ test('calling `signalNotReady` after `shutdown` does not have effect on server s
 
   lightship.shutdown();
 
+  t.true(lightship.isServerReady() === false);
+  t.true(lightship.isServerShuttingDown() === true);
+
   const serviceState1 = await getServiceState();
 
   t.true(serviceState1.health.status === 500);
   t.true(serviceState1.health.message === SERVER_IS_SHUTTING_DOWN);
 
   lightship.signalNotReady();
+
+  t.true(lightship.isServerReady() === false);
+  t.true(lightship.isServerShuttingDown() === true);
 
   const serviceState2 = await getServiceState();
 
