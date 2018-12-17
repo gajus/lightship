@@ -4,9 +4,10 @@ import express from 'express';
 import serializeError from 'serialize-error';
 import Logger from '../Logger';
 import type {
+  ConfigurationType,
+  LightshipType,
   ShutdownHandlerType,
-  LightshipConfigurationType,
-  LightshipType
+  UserConfigurationType
 } from '../types';
 import {
   SERVER_IS_NOT_READY,
@@ -25,13 +26,14 @@ const defaultConfiguration = {
     'SIGTERM',
     'SIGHUP',
     'SIGINT'
-  ]
+  ],
+  timeout: 60000
 };
 
-export default (userConfiguration?: LightshipConfigurationType): LightshipType => {
+export default (userConfiguration?: UserConfigurationType): LightshipType => {
   const shutdownHandlers: Array<ShutdownHandlerType> = [];
 
-  const configuration = {
+  const configuration: ConfigurationType = {
     ...defaultConfiguration,
     ...userConfiguration
   };
@@ -77,7 +79,7 @@ export default (userConfiguration?: LightshipConfigurationType): LightshipType =
     }
 
     if (serverIsReady === false) {
-      log.warn('server is already is a NOT READY state');
+      log.warn('server is already in a SERVER_IS_NOT_READY state');
     }
 
     log.info('signaling that the server is not ready to accept connections');
@@ -92,7 +94,7 @@ export default (userConfiguration?: LightshipConfigurationType): LightshipType =
       return;
     }
 
-    log.info('signaling that the server is ready to accept connections');
+    log.info('signaling that the server is ready');
 
     serverIsReady = true;
   };
@@ -102,6 +104,15 @@ export default (userConfiguration?: LightshipConfigurationType): LightshipType =
       log.warn('server is already shutting down');
 
       return;
+    }
+
+    if (configuration.timeout !== Infinity) {
+      setTimeout(() => {
+        log.warn('timeout occured before all the shutdown handlers could run to completion; forcing termination');
+
+        // eslint-disable-next-line no-process-exit
+        process.exit(1);
+      }, configuration.timeout);
     }
 
     serverIsReady = false;

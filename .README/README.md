@@ -75,10 +75,12 @@ type ShutdownHandlerType = () => Promise<void> | void;
 /**
  * @property port The port on which the Lightship service listens. This port must be different than your main service port, if any. The default port is 9000.
  * @property signals An a array of [signal events]{@link https://nodejs.org/api/process.html#process_signal_events}. Default: [SIGTERM].
+ * @property timeout A number of milliseconds before forcefull termination. Default: 60000.
  */
-type LightshipConfigurationType = {|
+export type LightshipConfigurationType = {|
   +port?: number,
-  +signals?: $ReadOnlyArray<string>
+  +signals?: $ReadOnlyArray<string>,
+  +timeout?: number
 |};
 
 /**
