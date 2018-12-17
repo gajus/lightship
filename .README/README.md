@@ -292,3 +292,7 @@ If for whatever reason a registered shutdown handler hangs, then (subject to the
 ### What is the reason for having separate `/live` and `/ready` endpoints?
 
 Distinct endpoints are needed if you want your Container to be able to take itself down for maintenance (as done in the [Using with Express.js](#lightship-usage-examples-using-with-express-js) usage example). Otherwise, you can use `/health`.
+
+## Related projects
+
+* [Iapetus](https://github.com/gajus/iapetus) – Prometheus metrics server.
