@@ -298,3 +298,4 @@ Distinct endpoints are needed if you want your Container to be able to take itse
 ## Related projects
 
 * [Iapetus](https://github.com/gajus/iapetus) – Prometheus metrics server.
+* [Preoom](https://github.com/gajus/preoom) – Retrieves & observes Kubernetes Pod resource (CPU, memory) utilisation.
