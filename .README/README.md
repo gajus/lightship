@@ -109,20 +109,24 @@ readinessProbe:
   httpGet:
     path: /ready
     port: 9000
+  failureThreshold: 1
   initialDelaySeconds: 5
   periodSeconds: 5
-  failureThreshold: 1
   successThreshold: 1
+  timeoutSeconds: 5
 livenessProbe:
   httpGet:
     path: /live
     port: 9000
+  failureThreshold: 3
   initialDelaySeconds: 10
   # Allow sufficient amount of time (180 seconds = periodSeconds * failureThreshold)
   # for the registered shutdown handlers to run to completion.
   periodSeconds: 30
-  failureThreshold: 3
   successThreshold: 1
+  # Setting a very low timeout value (e.g. 1 second) can cause false-positive
+  # checks and service interruption.
+  timeoutSeconds: 5
 
 ```
 
