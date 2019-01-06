@@ -130,10 +130,16 @@ export default (userConfiguration?: UserConfigurationType): LightshipType => {
 
     log.debug('all shutdown handlers have run to completion; proceeding to terminate the Node.js process');
 
-    server.close();
+    server.close((error) => {
+      if (error) {
+        log.error({
+          error: serializeError(error)
+        }, 'server was terminated with an error');
+      }
 
-    // eslint-disable-next-line no-process-exit
-    process.exit();
+      // eslint-disable-next-line no-process-exit
+      process.exit();
+    });
   };
 
   for (const signal of configuration.signals) {
