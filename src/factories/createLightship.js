@@ -137,8 +137,15 @@ export default (userConfiguration?: UserConfigurationType): LightshipType => {
         }, 'server was terminated with an error');
       }
 
-      // eslint-disable-next-line no-process-exit
-      process.exit();
+      const timeoutId = setTimeout(() => {
+        log.warn('process did not exit on its own; invetigate what is keeping the event loop active');
+
+        // eslint-disable-next-line no-process-exit
+        process.exit(1);
+      }, 1000);
+
+      // $FlowFixMe
+      timeoutId.unref();
     });
   };
 
