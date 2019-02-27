@@ -10,7 +10,7 @@
     ]
   },
   "dependencies": {
-    "express": "^5.0.0-alpha.6",
+    "express": "^4.16.4",
     "roarr": "^2.13.0",
     "serialize-error": "^3.0.0"
   },
