@@ -70,9 +70,7 @@ afterEach(() => {
 });
 
 test('server starts in SERVER_IS_NOT_READY state', async (t) => {
-  const lightship = createLightship({
-    detectKubernetes: false
-  });
+  const lightship = createLightship();
 
   t.true(lightship.isServerReady() === false);
   t.true(lightship.isServerShuttingDown() === false);
@@ -92,9 +90,7 @@ test('server starts in SERVER_IS_NOT_READY state', async (t) => {
 });
 
 test('calling `signalReady` changes server state to SERVER_IS_READY', async (t) => {
-  const lightship = createLightship({
-    detectKubernetes: false
-  });
+  const lightship = createLightship();
 
   lightship.signalReady();
 
@@ -116,9 +112,7 @@ test('calling `signalReady` changes server state to SERVER_IS_READY', async (t) 
 });
 
 test('calling `signalNotReady` changes server state to SERVER_IS_NOT_READY', async (t) => {
-  const lightship = createLightship({
-    detectKubernetes: false
-  });
+  const lightship = createLightship();
 
   lightship.signalReady();
   lightship.signalNotReady();
@@ -141,9 +135,7 @@ test('calling `signalNotReady` changes server state to SERVER_IS_NOT_READY', asy
 });
 
 test('calling `shutdown` changes server state to SERVER_IS_SHUTTING_DOWN', async (t) => {
-  const lightship = createLightship({
-    detectKubernetes: false
-  });
+  const lightship = createLightship();
 
   let shutdown;
 
@@ -177,9 +169,7 @@ test('calling `shutdown` changes server state to SERVER_IS_SHUTTING_DOWN', async
 });
 
 test('error thrown from within a shutdown handler does not interrupt the shutdown sequence', async (t) => {
-  const lightship = createLightship({
-    detectKubernetes: false
-  });
+  const lightship = createLightship();
 
   const shutdownHandler0 = sinon.spy(async () => {
     throw new Error('test');
@@ -211,9 +201,7 @@ test('error thrown from within a shutdown handler does not interrupt the shutdow
 });
 
 test('calling `shutdown` multiple times results in shutdown handlers called once', async (t) => {
-  const lightship = createLightship({
-    detectKubernetes: false
-  });
+  const lightship = createLightship();
 
   let shutdown;
 
@@ -243,9 +231,7 @@ test('calling `shutdown` multiple times results in shutdown handlers called once
 });
 
 test('calling `signalReady` after `shutdown` does not have effect on server state', async (t) => {
-  const lightship = createLightship({
-    detectKubernetes: false
-  });
+  const lightship = createLightship();
 
   let shutdown;
 
@@ -291,9 +277,7 @@ test('calling `signalReady` after `shutdown` does not have effect on server stat
 });
 
 test('calling `signalNotReady` after `shutdown` does not have effect on server state', async (t) => {
-  const lightship = createLightship({
-    detectKubernetes: false
-  });
+  const lightship = createLightship();
 
   let shutdown;
 

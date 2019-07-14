@@ -19,10 +19,6 @@ Refer to the following Kubernetes documentation for information about the readin
 * [Pod Lifecycle](https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/)
 * [Configure Liveness and Readiness Probes](https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/)
 
-### No-op in non-Kubernetes execution context
-
-The default behaviour is that all Lightship operations become no-op if Lightship detects that it is running in a non-Kubernetes environment (e.g. your local machine). This behaviour can be changed using `detectKubernetes` configuration.
-
 ### `/health`
 
 `/health` endpoint describes the current state of a Node.js service.
@@ -77,13 +73,11 @@ The following types describe the configuration shape and the resulting Lightship
 type ShutdownHandlerType = () => Promise<void> | void;
 
 /**
- * @property detectKubernetes Run Iapetus only if service is detected ro be running in Kubernetes. Default: true.
  * @property port The port on which the Lightship service listens. This port must be different than your main service port, if any. The default port is 9000.
  * @property signals An a array of [signal events]{@link https://nodejs.org/api/process.html#process_signal_events}. Default: [SIGTERM].
  * @property timeout A number of milliseconds before forcefull termination. Default: 60000.
  */
 export type LightshipConfigurationType = {|
-  +detectKubernetes?: boolean,
   +port?: number,
   +signals?: $ReadOnlyArray<string>,
   +timeout?: number

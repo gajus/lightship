@@ -3,9 +3,6 @@
 import express from 'express';
 import serializeError from 'serialize-error';
 import Logger from '../Logger';
-import {
-  isKubernetes
-} from '../utilities';
 import type {
   ConfigurationType,
   LightshipType,
@@ -24,7 +21,6 @@ const log = Logger.child({
 });
 
 const defaultConfiguration = {
-  detectKubernetes: true,
   port: 9000,
   signals: [
     'SIGTERM',
@@ -44,30 +40,6 @@ export default (userConfiguration?: UserConfigurationType): LightshipType => {
 
   let serverIsReady = false;
   let serverIsShuttingDown = false;
-
-  if (configuration.detectKubernetes === true && isKubernetes() === false) {
-    log.warn('Lightship could not detect Kubernetes; operating in a no-op mode');
-
-    return {
-      isServerReady: () => {
-        return serverIsReady;
-      },
-      isServerShuttingDown: () => {
-        return serverIsShuttingDown;
-      },
-      registerShutdownHandler: () => {},
-      shutdown: async () => {
-        serverIsReady = false;
-        serverIsShuttingDown = true;
-      },
-      signalNotReady: () => {
-        serverIsReady = false;
-      },
-      signalReady: () => {
-        serverIsReady = true;
-      }
-    };
-  }
 
   const app = express();
 
@@ -133,6 +105,8 @@ export default (userConfiguration?: UserConfigurationType): LightshipType => {
 
       return;
     }
+
+    log.info('received request to shutdown the service');
 
     if (configuration.timeout !== Infinity) {
       setTimeout(() => {

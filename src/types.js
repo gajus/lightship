@@ -6,20 +6,17 @@
 export type ShutdownHandlerType = () => Promise<void> | void;
 
 /**
- * @property detectKubernetes Run Iapetus only if service is detected ro be running in Kubernetes. Default: true.
  * @property port The port on which the Lightship service listens. This port must be different than your main service port, if any. The default port is 9000.
  * @property signals An a array of [signal events]{@link https://nodejs.org/api/process.html#process_signal_events}. Default: [SIGTERM].
  * @property timeout A number of milliseconds before forcefull termination. Default: 60000.
  */
 export type UserConfigurationType = {|
-  +detectKubernetes?: boolean,
   +port?: number,
   +signals?: $ReadOnlyArray<string>,
   +timeout?: number
 |};
 
 export type ConfigurationType = {|
-  +detectKubernetes: boolean,
   +port: number,
   +signals: $ReadOnlyArray<string>,
   +timeout: number
