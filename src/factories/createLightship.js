@@ -73,29 +73,29 @@ export default (userConfiguration?: UserConfigurationType): LightshipType => {
 
   const server = app.listen(configuration.port);
 
-  app.get('/health', (req, res) => {
+  app.get('/health', (request, response) => {
     if (serverIsShuttingDown) {
-      res.status(500).send(SERVER_IS_SHUTTING_DOWN);
+      response.status(500).send(SERVER_IS_SHUTTING_DOWN);
     } else if (serverIsReady) {
-      res.send(SERVER_IS_READY);
+      response.send(SERVER_IS_READY);
     } else {
-      res.status(500).send(SERVER_IS_NOT_READY);
+      response.status(500).send(SERVER_IS_NOT_READY);
     }
   });
 
-  app.get('/live', (req, res) => {
+  app.get('/live', (request, response) => {
     if (serverIsShuttingDown) {
-      res.status(500).send(SERVER_IS_SHUTTING_DOWN);
+      response.status(500).send(SERVER_IS_SHUTTING_DOWN);
     } else {
-      res.send(SERVER_IS_NOT_SHUTTING_DOWN);
+      response.send(SERVER_IS_NOT_SHUTTING_DOWN);
     }
   });
 
-  app.get('/ready', (req, res) => {
+  app.get('/ready', (request, response) => {
     if (serverIsReady) {
-      res.send(SERVER_IS_READY);
+      response.send(SERVER_IS_READY);
     } else {
-      res.status(500).send(SERVER_IS_NOT_READY);
+      response.status(500).send(SERVER_IS_NOT_READY);
     }
   });
 
