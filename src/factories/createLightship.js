@@ -15,12 +15,16 @@ import {
   SERVER_IS_READY,
   SERVER_IS_SHUTTING_DOWN
 } from '../states';
+import {
+  isKubernetes
+} from '../utilities';
 
 const log = Logger.child({
   namespace: 'factories/createLightship'
 });
 
 const defaultConfiguration = {
+  detectKubernetes: true,
   port: 9000,
   signals: [
     'SIGTERM',
@@ -43,7 +47,11 @@ export default (userConfiguration?: UserConfigurationType): LightshipType => {
 
   const app = express();
 
-  const server = app.listen(configuration.port);
+  const modeIsLocal = configuration.detectKubernetes === true && isKubernetes() === false;
+
+  const server = app.listen(modeIsLocal ? undefined : configuration.port, () => {
+    log.info('Lightship HTTP service is running on port %s', server.address().port);
+  });
 
   app.get('/health', (request, response) => {
     if (serverIsShuttingDown) {
@@ -151,14 +159,18 @@ export default (userConfiguration?: UserConfigurationType): LightshipType => {
     });
   };
 
-  for (const signal of configuration.signals) {
-    process.on(signal, () => {
-      log.debug({
-        signal
-      }, 'received a shutdown signal');
+  if (modeIsLocal) {
+    log.warn('shutdown handlers are not used in the local mode');
+  } else {
+    for (const signal of configuration.signals) {
+      process.on(signal, () => {
+        log.debug({
+          signal
+        }, 'received a shutdown signal');
 
-      shutdown();
-    });
+        shutdown();
+      });
+    }
   }
 
   return {
@@ -171,6 +183,7 @@ export default (userConfiguration?: UserConfigurationType): LightshipType => {
     registerShutdownHandler: (shutdownHandler) => {
       shutdownHandlers.push(shutdownHandler);
     },
+    server,
     shutdown,
     signalNotReady,
     signalReady
