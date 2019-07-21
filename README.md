@@ -11,6 +11,7 @@ Abstracts readiness/ liveness checks and graceful shutdown of Node.js services r
 
 * [Lightship 🚢](#lightship)
     * [Behaviour](#lightship-behaviour)
+        * [Local-mode](#lightship-behaviour-local-mode)
         * [`/health`](#lightship-behaviour-health)
         * [`/live`](#lightship-behaviour-live)
         * [`/ready`](#lightship-behaviour-ready)
@@ -33,6 +34,11 @@ Refer to the following Kubernetes documentation for information about the readin
 
 * [Pod Lifecycle](https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/)
 * [Configure Liveness and Readiness Probes](https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/)
+
+<a name="lightship-behaviour-local-mode"></a>
+### Local-mode
+
+If Lightship detects that it is running in a non-Kubernetes environment (e.g. your local machine) then it starts the HTTP service on any available HTTP port. This is done to avoid port collision when multiple services using Lightship are being developed on the same machine. This behaviour can be changed using `detectKubernetes` and `port` configuration.
 
 <a name="lightship-behaviour-health"></a>
 ### <code>/health</code>
@@ -92,11 +98,13 @@ The following types describe the configuration shape and the resulting Lightship
 type ShutdownHandlerType = () => Promise<void> | void;
 
 /**
+ * @property detectKubernetes Run Lightship in local mode when Kubernetes is not detected. Default: true.
  * @property port The port on which the Lightship service listens. This port must be different than your main service port, if any. The default port is 9000.
  * @property signals An a array of [signal events]{@link https://nodejs.org/api/process.html#process_signal_events}. Default: [SIGTERM].
  * @property timeout A number of milliseconds before forcefull termination. Default: 60000.
  */
 export type LightshipConfigurationType = {|
+  +detectKubernetes?: boolean,
   +port?: number,
   +signals?: $ReadOnlyArray<string>,
   +timeout?: number
@@ -109,6 +117,7 @@ export type LightshipConfigurationType = {|
  * @property signalReady Changes server state to SERVER_IS_READY.
  */
 type LightshipType = {|
+  +server: http$Server,
   +isServerReady: () => boolean,
   +isServerShuttingDown: () => boolean,
   +registerShutdownHandler: (shutdownHandler: ShutdownHandlerType) => void,
@@ -129,20 +138,24 @@ readinessProbe:
   httpGet:
     path: /ready
     port: 9000
+  failureThreshold: 1
   initialDelaySeconds: 5
   periodSeconds: 5
-  failureThreshold: 1
   successThreshold: 1
+  timeoutSeconds: 5
 livenessProbe:
   httpGet:
     path: /live
     port: 9000
+  failureThreshold: 3
   initialDelaySeconds: 10
   # Allow sufficient amount of time (180 seconds = periodSeconds * failureThreshold)
   # for the registered shutdown handlers to run to completion.
   periodSeconds: 30
-  failureThreshold: 3
   successThreshold: 1
+  # Setting a very low timeout value (e.g. 1 second) can cause false-positive
+  # checks and service interruption.
+  timeoutSeconds: 5
 
 ```
 
