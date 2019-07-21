@@ -153,6 +153,12 @@ livenessProbe:
 
 Set `ROARR_LOG=true` environment variable to enable logging.
 
+### Testing Locally
+
+Lightship runs a http service in a random port, in order to test it locally you must enable ROARR `ROARR_LOG=true` then check the log message on the application's start up `Lightship HTTP service is running on port 60621`.
+
+Then you can test the endpoints like `http://localhost:60621/health`.
+
 <a name="lightship-usage-examples"></a>
 ## Usage examples
 
