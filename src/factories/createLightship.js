@@ -1,5 +1,8 @@
 // @flow
 
+// eslint-disable-next-line fp/no-events
+import EventEmitter from 'events';
+import delay from 'delay';
 import express from 'express';
 import serializeError from 'serialize-error';
 import Logger from '../Logger';
@@ -35,6 +38,10 @@ const defaultConfiguration = {
 };
 
 export default (userConfiguration?: UserConfigurationType): LightshipType => {
+  const eventEmitter = new EventEmitter();
+
+  const beacons = [];
+
   const shutdownHandlers: Array<ShutdownHandlerType> = [];
 
   const configuration: ConfigurationType = {
@@ -129,6 +136,26 @@ export default (userConfiguration?: UserConfigurationType): LightshipType => {
     serverIsReady = true;
     serverIsShuttingDown = true;
 
+    if (beacons.length) {
+      await new Promise((resolve) => {
+        const check = () => {
+          if (beacons.length > 0) {
+            log.info({
+              beacons
+            }, 'program termination is on hold because there are live beacons');
+          } else {
+            resolve();
+          }
+        };
+
+        eventEmitter.on('beaconStateChange', () => {
+          check();
+        });
+
+        check();
+      });
+    }
+
     for (const shutdownHandler of shutdownHandlers) {
       try {
         await shutdownHandler();
@@ -174,7 +201,30 @@ export default (userConfiguration?: UserConfigurationType): LightshipType => {
     }
   }
 
+  const createBeacon = (context) => {
+    const beacon = {
+      context: context || {}
+    };
+
+    beacons.push(beacon);
+
+    return {
+      die: async () => {
+        log.trace({
+          beacon
+        }, 'beacon has been killed');
+
+        beacons.splice(beacons.indexOf(beacon), 1);
+
+        eventEmitter.emit('beaconStateChange');
+
+        await delay(0);
+      }
+    };
+  };
+
   return {
+    createBeacon,
     isServerReady: () => {
       return serverIsReady;
     },

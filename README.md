@@ -22,6 +22,7 @@ Abstracts readiness/ liveness checks and graceful shutdown of Node.js services r
         * [Logging](#lightship-usage-logging)
     * [Usage examples](#lightship-usage-examples)
         * [Using with Express.js](#lightship-usage-examples-using-with-express-js)
+        * [Beacons](#lightship-usage-examples-beacons)
     * [Best practices](#lightship-best-practices)
         * [Add a delay before stop handling incoming requests](#lightship-best-practices-add-a-delay-before-stop-handling-incoming-requests)
     * [FAQ](#lightship-faq)
@@ -121,10 +122,11 @@ export type LightshipConfigurationType = {|
  * @property signalReady Changes server state to SERVER_IS_READY.
  */
 type LightshipType = {|
-  +server: http$Server,
+  +createBeacon: (context?: BeaconContextType) => BeaconControllerType,
   +isServerReady: () => boolean,
   +isServerShuttingDown: () => boolean,
   +registerShutdownHandler: (shutdownHandler: ShutdownHandlerType) => void,
+  +server: http$Server,
   +shutdown: () => Promise<void>,
   +signalNotReady: () => void,
   +signalReady: () => void
@@ -328,6 +330,79 @@ lightship.signalReady();
 Do not call `process.exit()` in a shutdown handler – Lighthouse calls `process.exit()` after all registered shutdown handlers have run to completion.
 
 If for whatever reason a registered shutdown handler hangs, then (subject to the Pod's [restart policy](https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/#restart-policy)) Kubernetes will forcefully restart the Container after the `livenessProbe` deems the service to be failed.
+
+<a name="lightship-usage-examples-beacons"></a>
+### Beacons
+
+Beacons are used to delay the registered shutdown handler routine.
+
+A beacon can be created using `createBeacon()` method, e.g.
+
+```js
+const lightship = createLightship();
+
+const beacon = lightship.createBeacon();
+
+```
+
+Beacon is live upon creation. Shutdown handlers are suspended until there are live beacons.
+
+To singnal that a beacon is dead, use `die()` method:
+
+```js
+beacon.die();
+// This beacon is now dead.
+
+```
+
+After beacon has been killed, it cannot be revived again.
+
+Use beacons to suspend the registered shutdown handler routine when you are processing a job queue, e.g.
+
+```js
+for (const job of jobs) {
+  if (lightship.isServerShuttingDown()) {
+    log.info('detected that the service is shutting down; terminating the event loop');
+
+    break;
+  }
+
+  const beacon = lightship.createBeacon();
+
+  // Do the job.
+
+  await beacon.die();
+}
+
+```
+
+Additionally, you can provide beacons with context, e.g.
+
+```js
+for (const job of jobs) {
+  if (lightship.isServerShuttingDown()) {
+    log.info('detected that the service is shutting down; terminating the event loop');
+
+    break;
+  }
+
+  const beacon = lightship.createBeacon({
+    jobId: job.id
+  });
+
+  // Do the job.
+
+  await beacon.die();
+}
+
+```
+
+The logs will include messages describing the beacons that are holding the connection, e.g.
+
+```json
+{"context":{"package":"lightship","namespace":"factories/createLightship","logLevel":30,"beacons":[{"context":{"id":1}}]},"message":"program termination is on hold because there are live beacons","sequence":2,"time":1563892493825,"version":"1.0.0"}
+
+```
 
 <a name="lightship-best-practices"></a>
 ## Best practices

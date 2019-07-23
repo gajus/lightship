@@ -29,6 +29,13 @@ export type ConfigurationType = {|
   +timeout: number
 |};
 
+// eslint-disable-next-line flowtype/no-weak-types
+export type BeaconContextType = Object;
+
+export type BeaconControllerType = {|
+  +die: () => Promise<void>
+|};
+
 export opaque type StateType =
   'SERVER_IS_NOT_READY' |
   'SERVER_IS_NOT_SHUTTING_DOWN' |
@@ -42,10 +49,11 @@ export opaque type StateType =
  * @property signalReady Changes server state to SERVER_IS_READY.
  */
 export type LightshipType = {|
-  +server: Server,
+  +createBeacon: (context?: BeaconContextType) => BeaconControllerType,
   +isServerReady: () => boolean,
   +isServerShuttingDown: () => boolean,
   +registerShutdownHandler: (shutdownHandler: ShutdownHandlerType) => void,
+  +server: Server,
   +shutdown: () => Promise<void>,
   +signalNotReady: () => void,
   +signalReady: () => void

@@ -278,3 +278,35 @@ test('calling `signalNotReady` after `shutdown` does not have effect on server s
 
   await shutdown();
 });
+
+test('presence of live beacons suspend the shutdown routine', async (t) => {
+  const lightship = createLightship();
+
+  let shutdown;
+
+  const shutdownHandler = sinon.spy(() => {
+    return new Promise((resolve) => {
+      shutdown = resolve;
+    });
+  });
+
+  lightship.registerShutdownHandler(shutdownHandler);
+
+  const beacon = lightship.createBeacon();
+
+  t.is(shutdownHandler.callCount, 0);
+
+  lightship.shutdown();
+
+  t.is(shutdownHandler.callCount, 0);
+
+  await beacon.die();
+
+  t.is(shutdownHandler.callCount, 1);
+
+  if (!shutdown) {
+    throw new Error('Unexpected state.');
+  }
+
+  await shutdown();
+});
