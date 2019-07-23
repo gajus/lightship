@@ -147,7 +147,7 @@ test('calling `shutdown` changes server state to SERVER_IS_SHUTTING_DOWN', async
 
   lightship.shutdown();
 
-  t.true(lightship.isServerReady() === false);
+  t.true(lightship.isServerReady() === true);
   t.true(lightship.isServerShuttingDown() === true);
 
   const serviceState = await getServiceState(lightship.server.address().port);
@@ -158,8 +158,9 @@ test('calling `shutdown` changes server state to SERVER_IS_SHUTTING_DOWN', async
   t.true(serviceState.live.status === 500);
   t.true(serviceState.live.message === SERVER_IS_SHUTTING_DOWN);
 
-  t.true(serviceState.ready.status === 500);
-  t.true(serviceState.ready.message === SERVER_IS_NOT_READY);
+  // @see https://github.com/gajus/lightship/issues/12
+  t.true(serviceState.ready.status === 200);
+  t.true(serviceState.ready.message === SERVER_IS_READY);
 
   if (!shutdown) {
     throw new Error('Unexpected state.');
@@ -230,52 +231,6 @@ test('calling `shutdown` multiple times results in shutdown handlers called once
   await shutdown();
 });
 
-test('calling `signalReady` after `shutdown` does not have effect on server state', async (t) => {
-  const lightship = createLightship();
-
-  let shutdown;
-
-  lightship.registerShutdownHandler(() => {
-    return new Promise((resolve) => {
-      shutdown = resolve;
-    });
-  });
-
-  t.true(lightship.isServerReady() === false);
-  t.true(lightship.isServerShuttingDown() === false);
-
-  const serviceState0 = await getServiceState(lightship.server.address().port);
-
-  t.true(serviceState0.health.status === 500);
-  t.true(serviceState0.health.message === SERVER_IS_NOT_READY);
-
-  lightship.shutdown();
-
-  t.true(lightship.isServerReady() === false);
-  t.true(lightship.isServerShuttingDown() === true);
-
-  const serviceState1 = await getServiceState(lightship.server.address().port);
-
-  t.true(serviceState1.health.status === 500);
-  t.true(serviceState1.health.message === SERVER_IS_SHUTTING_DOWN);
-
-  lightship.signalReady();
-
-  t.true(lightship.isServerReady() === false);
-  t.true(lightship.isServerShuttingDown() === true);
-
-  const serviceState2 = await getServiceState(lightship.server.address().port);
-
-  t.true(serviceState2.health.status === 500);
-  t.true(serviceState2.health.message === SERVER_IS_SHUTTING_DOWN);
-
-  if (!shutdown) {
-    throw new Error('Unexpected state.');
-  }
-
-  await shutdown();
-});
-
 test('calling `signalNotReady` after `shutdown` does not have effect on server state', async (t) => {
   const lightship = createLightship();
 
@@ -299,7 +254,7 @@ test('calling `signalNotReady` after `shutdown` does not have effect on server s
 
   lightship.shutdown();
 
-  t.true(lightship.isServerReady() === false);
+  t.true(lightship.isServerReady() === true);
   t.true(lightship.isServerShuttingDown() === true);
 
   const serviceState1 = await getServiceState(lightship.server.address().port);
@@ -309,7 +264,7 @@ test('calling `signalNotReady` after `shutdown` does not have effect on server s
 
   lightship.signalNotReady();
 
-  t.true(lightship.isServerReady() === false);
+  t.true(lightship.isServerReady() === true);
   t.true(lightship.isServerShuttingDown() === true);
 
   const serviceState2 = await getServiceState(lightship.server.address().port);

@@ -125,7 +125,8 @@ export default (userConfiguration?: UserConfigurationType): LightshipType => {
       }, configuration.timeout);
     }
 
-    serverIsReady = false;
+    // @see https://github.com/gajus/lightship/issues/12
+    serverIsReady = true;
     serverIsShuttingDown = true;
 
     for (const shutdownHandler of shutdownHandlers) {
