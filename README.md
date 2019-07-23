@@ -7,6 +7,8 @@
 [![Canonical Code Style](https://img.shields.io/badge/code%20style-canonical-blue.svg?style=flat-square)](https://github.com/gajus/canonical)
 [![Twitter Follow](https://img.shields.io/twitter/follow/kuizinas.svg?style=social&label=Follow)](https://twitter.com/kuizinas)
 
+(Please read [Best practices](#best-practices) section.)
+
 Abstracts readiness/ liveness checks and graceful shutdown of Node.js services running in Kubernetes.
 
 * [Lightship 🚢](#lightship)
@@ -20,6 +22,8 @@ Abstracts readiness/ liveness checks and graceful shutdown of Node.js services r
         * [Logging](#lightship-usage-logging)
     * [Usage examples](#lightship-usage-examples)
         * [Using with Express.js](#lightship-usage-examples-using-with-express-js)
+    * [Best practices](#lightship-best-practices)
+        * [Add a delay before stop handling incoming requests](#lightship-best-practices-add-a-delay-before-stop-handling-incoming-requests)
     * [FAQ](#lightship-faq)
         * [What is the reason for having separate `/live` and `/ready` endpoints?](#lightship-faq-what-is-the-reason-for-having-separate-live-and-ready-endpoints)
     * [Related projects](#lightship-related-projects)
@@ -324,6 +328,23 @@ lightship.signalReady();
 Do not call `process.exit()` in a shutdown handler – Lighthouse calls `process.exit()` after all registered shutdown handlers have run to completion.
 
 If for whatever reason a registered shutdown handler hangs, then (subject to the Pod's [restart policy](https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/#restart-policy)) Kubernetes will forcefully restart the Container after the `livenessProbe` deems the service to be failed.
+
+<a name="lightship-best-practices"></a>
+## Best practices
+
+<a name="lightship-best-practices-add-a-delay-before-stop-handling-incoming-requests"></a>
+### Add a delay before stop handling incoming requests
+
+It is important that you do not cease to handle new incoming requests immediatelly after receiving the shutdown signal. This is because there is a high probability of the SIGTERM signal being sent well before the iptables rules are updated on all nodes. The result is that the pod may still receive client requests after it has received the termination signal. If the app stops accepting connections immediately, it causes clients to receive "connection refused" types of errors.
+
+Properly shutting down an application includes these steps:
+
+1. Wait for a few seconds, then stop accepting new connections,
+2. Close all keep-alive connections that aren't in the middle of a request,
+3. Wait for all active requests to finish, and then
+4. Shut down completely.
+
+See [Handling Client Requests Properly with Kubernetes](https://freecontent.manning.com/handling-client-requests-properly-with-kubernetes/) for more information.
 
 <a name="lightship-faq"></a>
 ## FAQ
