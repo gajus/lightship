@@ -1,7 +1,7 @@
 // @flow
 
 import type {
-  StateType
+  StateType,
 } from './types';
 
 const createState = (subject: *): StateType => {

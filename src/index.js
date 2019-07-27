@@ -2,5 +2,5 @@
 
 export {default as createLightship} from './factories/createLightship';
 export type {
-  LightshipType
+  LightshipType,
 } from './types';
