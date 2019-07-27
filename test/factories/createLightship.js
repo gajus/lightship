@@ -2,7 +2,7 @@
 
 import test, {
   afterEach,
-  beforeEach
+  beforeEach,
 } from 'ava';
 import sinon from 'sinon';
 import delay from 'delay';
@@ -12,7 +12,7 @@ import {
   SERVER_IS_NOT_READY,
   SERVER_IS_NOT_SHUTTING_DOWN,
   SERVER_IS_READY,
-  SERVER_IS_SHUTTING_DOWN
+  SERVER_IS_SHUTTING_DOWN,
 } from '../../src/states';
 
 type ProbeStateType = {|
@@ -30,34 +30,34 @@ const getServiceState = async (port: number = 9000): Promise<ServiceStateType> =
   const health = await axios('http://127.0.0.1:' + port + '/health', {
     validateStatus: () => {
       return true;
-    }
+    },
   });
 
   const live = await axios('http://127.0.0.1:' + port + '/live', {
     validateStatus: () => {
       return true;
-    }
+    },
   });
 
   const ready = await axios('http://127.0.0.1:' + port + '/ready', {
     validateStatus: () => {
       return true;
-    }
+    },
   });
 
   return {
     health: {
       message: health.data,
-      status: health.status
+      status: health.status,
     },
     live: {
       message: live.data,
-      status: live.status
+      status: live.status,
     },
     ready: {
       message: ready.data,
-      status: ready.status
-    }
+      status: ready.status,
+    },
   };
 };
 

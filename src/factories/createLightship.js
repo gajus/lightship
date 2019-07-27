@@ -10,20 +10,20 @@ import type {
   ConfigurationType,
   LightshipType,
   ShutdownHandlerType,
-  UserConfigurationType
+  UserConfigurationType,
 } from '../types';
 import {
   SERVER_IS_NOT_READY,
   SERVER_IS_NOT_SHUTTING_DOWN,
   SERVER_IS_READY,
-  SERVER_IS_SHUTTING_DOWN
+  SERVER_IS_SHUTTING_DOWN,
 } from '../states';
 import {
-  isKubernetes
+  isKubernetes,
 } from '../utilities';
 
 const log = Logger.child({
-  namespace: 'factories/createLightship'
+  namespace: 'factories/createLightship',
 });
 
 const defaultConfiguration = {
@@ -32,9 +32,9 @@ const defaultConfiguration = {
   signals: [
     'SIGTERM',
     'SIGHUP',
-    'SIGINT'
+    'SIGINT',
   ],
-  timeout: 60000
+  timeout: 60000,
 };
 
 export default (userConfiguration?: UserConfigurationType): LightshipType => {
@@ -46,7 +46,7 @@ export default (userConfiguration?: UserConfigurationType): LightshipType => {
 
   const configuration: ConfigurationType = {
     ...defaultConfiguration,
-    ...userConfiguration
+    ...userConfiguration,
   };
 
   let serverIsReady = false;
@@ -141,7 +141,7 @@ export default (userConfiguration?: UserConfigurationType): LightshipType => {
         const check = () => {
           if (beacons.length > 0) {
             log.info({
-              beacons
+              beacons,
             }, 'program termination is on hold because there are live beacons');
           } else {
             resolve();
@@ -161,7 +161,7 @@ export default (userConfiguration?: UserConfigurationType): LightshipType => {
         await shutdownHandler();
       } catch (error) {
         log.error({
-          error: serializeError(error)
+          error: serializeError(error),
         }, 'shutdown handler produced an error');
       }
     }
@@ -171,7 +171,7 @@ export default (userConfiguration?: UserConfigurationType): LightshipType => {
     server.close((error) => {
       if (error) {
         log.error({
-          error: serializeError(error)
+          error: serializeError(error),
         }, 'server was terminated with an error');
       }
 
@@ -193,7 +193,7 @@ export default (userConfiguration?: UserConfigurationType): LightshipType => {
     for (const signal of configuration.signals) {
       process.on(signal, () => {
         log.debug({
-          signal
+          signal,
         }, 'received a shutdown signal');
 
         shutdown();
@@ -203,7 +203,7 @@ export default (userConfiguration?: UserConfigurationType): LightshipType => {
 
   const createBeacon = (context) => {
     const beacon = {
-      context: context || {}
+      context: context || {},
     };
 
     beacons.push(beacon);
@@ -211,7 +211,7 @@ export default (userConfiguration?: UserConfigurationType): LightshipType => {
     return {
       die: async () => {
         log.trace({
-          beacon
+          beacon,
         }, 'beacon has been killed');
 
         beacons.splice(beacons.indexOf(beacon), 1);
@@ -219,7 +219,7 @@ export default (userConfiguration?: UserConfigurationType): LightshipType => {
         eventEmitter.emit('beaconStateChange');
 
         await delay(0);
-      }
+      },
     };
   };
 
@@ -237,6 +237,6 @@ export default (userConfiguration?: UserConfigurationType): LightshipType => {
     server,
     shutdown,
     signalNotReady,
-    signalReady
+    signalReady,
   };
 };

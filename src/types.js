@@ -1,7 +1,7 @@
 // @flow
 
 import type {
-  Server
+  Server,
 } from 'http';
 
 /**
