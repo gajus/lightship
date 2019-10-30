@@ -17,13 +17,13 @@ import {
 
 type ProbeStateType = {|
   +message: string,
-  +status: number
+  +status: number,
 |};
 
 type ServiceStateType = {|
   +health: ProbeStateType,
   +live: ProbeStateType,
-  +ready: ProbeStateType
+  +ready: ProbeStateType,
 |};
 
 const getServiceState = async (port: number = 9000): Promise<ServiceStateType> => {

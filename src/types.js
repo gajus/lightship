@@ -19,21 +19,21 @@ export type UserConfigurationType = {|
   +detectKubernetes?: boolean,
   +port?: number,
   +signals?: $ReadOnlyArray<string>,
-  +timeout?: number
+  +timeout?: number,
 |};
 
 export type ConfigurationType = {|
   +detectKubernetes: boolean,
   +port: number,
   +signals: $ReadOnlyArray<string>,
-  +timeout: number
+  +timeout: number,
 |};
 
 // eslint-disable-next-line flowtype/no-weak-types
 export type BeaconContextType = Object;
 
 export type BeaconControllerType = {|
-  +die: () => Promise<void>
+  +die: () => Promise<void>,
 |};
 
 export opaque type StateType =
@@ -56,5 +56,5 @@ export type LightshipType = {|
   +server: Server,
   +shutdown: () => Promise<void>,
   +signalNotReady: () => void,
-  +signalReady: () => void
+  +signalReady: () => void,
 |};
