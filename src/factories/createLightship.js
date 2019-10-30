@@ -4,7 +4,9 @@
 import EventEmitter from 'events';
 import delay from 'delay';
 import express from 'express';
-import serializeError from 'serialize-error';
+import {
+  serializeError,
+} from 'serialize-error';
 import Logger from '../Logger';
 import type {
   ConfigurationType,
