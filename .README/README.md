@@ -392,6 +392,42 @@ See [Handling Client Requests Properly with Kubernetes](https://freecontent.mann
 
 ## FAQ
 
+### What is the reason that my liveness/ readiness endpoints are intermittently failing?
+
+You may discover that your service health checks are failing intermittently, e.g.
+
+```
+Warning  Unhealthy  4m17s (x3 over 4m27s)   kubelet, f95a4d94-jwfr  Liveness probe failed: Get http://10.24.7.155:9000/live: net/http: request canceled (Client.Timeout exceeded while awaiting headers)
+Warning  Unhealthy  3m28s (x15 over 4m38s)  kubelet, f95a4d94-jwfr  Readiness probe failed: Get http://10.24.7.155:9000/ready: net/http: request canceled (Client.Timeout exceeded while awaiting headers)
+
+```
+
+This may happen if you are perfoming [event-loop blocking tasks](https://nodejs.org/ru/docs/guides/dont-block-the-event-loop/) for extended durations, e.g.
+
+```js
+const startTime = Date.now();
+
+let index0 = 1000;
+
+while (index0--) {
+  let index1 = 1000;
+
+  while (index1--) {
+    console.log(index0 + ':' + index1);
+  }
+}
+
+console.log(Date.now() - startTime);
+
+```
+
+If executed, the above operation would block the event-loop for couple of seconds (e.g. 8 seconds on my machine). During this time Lightship is going to be unresponsive.
+
+Your options are:
+
+* Use [`worker_threads`](https://nodejs.org/api/worker_threads.html) to execute the event-loop blocking task in the background.
+* Refactor the code into [synchronous chunks](https://nodejs.org/ru/docs/guides/dont-block-the-event-loop/).
+
 ### What is the reason for having separate `/live` and `/ready` endpoints?
 
 Distinct endpoints are needed if you want your Container to be able to take itself down for maintenance (as done in the [Using with Express.js](#lightship-usage-examples-using-with-express-js) usage example). Otherwise, you can use `/health`.
