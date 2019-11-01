@@ -89,7 +89,7 @@ import {
   createLightship
 } from 'lightship';
 
-const configuration: LightshipConfigurationType = {};
+const configuration: UserConfigurationType = {};
 
 const lightship: LightshipType = createLightship(configuration);
 
@@ -109,7 +109,7 @@ type ShutdownHandlerType = () => Promise<void> | void;
  * @property signals An a array of [signal events]{@link https://nodejs.org/api/process.html#process_signal_events}. Default: [SIGTERM].
  * @property timeout A number of milliseconds before forcefull termination. Default: 60000.
  */
-export type LightshipConfigurationType = {|
+export type UserConfigurationType = {|
   +detectKubernetes?: boolean,
   +port?: number,
   +signals?: $ReadOnlyArray<string>,
