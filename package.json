@@ -21,7 +21,7 @@
   "dependencies": {
     "delay": "^4.3.0",
     "express": "^4.17.1",
-    "roarr": "^2.14.2",
+    "roarr": "^2.14.3",
     "serialize-error": "^5.0.0"
   },
   "description": "Abstracts readiness/ liveness checks and graceful shutdown of Node.js services running in Kubernetes.",
@@ -38,7 +38,7 @@
     "coveralls": "^3.0.7",
     "eslint": "^6.6.0",
     "eslint-config-canonical": "^17.7.0",
-    "flow-bin": "^0.110.1",
+    "flow-bin": "^0.111.0",
     "flow-copy-source": "^2.0.8",
     "get-port": "^5.0.0",
     "gitdown": "^3.1.2",
