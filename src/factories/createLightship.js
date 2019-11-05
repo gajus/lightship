@@ -9,10 +9,10 @@ import {
 } from 'serialize-error';
 import Logger from '../Logger';
 import type {
+  ConfigurationInputType,
   ConfigurationType,
   LightshipType,
   ShutdownHandlerType,
-  UserConfigurationType,
 } from '../types';
 import {
   SERVER_IS_NOT_READY,
@@ -39,7 +39,7 @@ const defaultConfiguration = {
   timeout: 60000,
 };
 
-export default (userConfiguration?: UserConfigurationType): LightshipType => {
+export default (userConfiguration?: ConfigurationInputType): LightshipType => {
   const eventEmitter = new EventEmitter();
 
   const beacons = [];

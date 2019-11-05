@@ -15,7 +15,7 @@ export type ShutdownHandlerType = () => Promise<void> | void;
  * @property signals An a array of [signal events]{@link https://nodejs.org/api/process.html#process_signal_events}. Default: [SIGTERM].
  * @property timeout A number of milliseconds before forcefull termination. Default: 60000.
  */
-export type UserConfigurationType = {|
+export type ConfigurationInputType = {|
   +detectKubernetes?: boolean,
   +port?: number,
   +signals?: $ReadOnlyArray<string>,
