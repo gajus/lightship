@@ -126,12 +126,15 @@ export default (userConfiguration?: ConfigurationInputType): LightshipType => {
     log.info('received request to shutdown the service');
 
     if (configuration.timeout !== Infinity) {
-      setTimeout(() => {
+      const timeoutId = setTimeout(() => {
         log.warn('timeout occurred before all the shutdown handlers could run to completion; forcing termination');
 
         // eslint-disable-next-line no-process-exit
         process.exit(1);
       }, configuration.timeout);
+
+      // $FlowFixMe
+      timeoutId.unref();
     }
 
     // @see https://github.com/gajus/lightship/issues/12
