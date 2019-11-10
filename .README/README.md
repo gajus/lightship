@@ -432,6 +432,49 @@ Your options are:
 
 Distinct endpoints are needed if you want your Container to be able to take itself down for maintenance (as done in the [Using with Express.js](#lightship-usage-examples-using-with-express-js) usage example). Otherwise, you can use `/health`.
 
+### How to detect what is holding the Node.js process alive?
+
+You may get a log message saying that your process did not exit on its own, e.g.
+
+```
+[2019-11-10T21:11:45.452Z] DEBUG (20) (@lightship) (#factories/createLightship): all shutdown handlers have run to completion; proceeding to terminate the Node.js process
+[2019-11-10T21:11:46.455Z] WARN (40) (@lightship) (#factories/createLightship): process did not exit on its own; investigate what is keeping the event loop active
+
+```
+
+This means that there is some work that is scheduled to happen (e.g. a referenced `setTimeout`).
+
+In order to understand what is keeping your Node.js process from exiting on its own, you need to identify all active handles and requests. This can be done with a help of utilities such as [`wtfnode`](https://www.npmjs.com/package/wtfnode) and [`why-is-node-running`](https://www.npmjs.com/package/why-is-node-running), e.g.
+
+```js
+import whyIsNodeRunning from 'why-is-node-running';
+import express from 'express';
+import {
+  createLightship
+} from 'lightship';
+
+const app = express();
+
+app.get('/', (req, res) => {
+  res.send('Hello, World!');
+});
+
+const server = app.listen(8080);
+
+const lightship = createLightship();
+
+lightship.registerShutdownHandler(() => {
+  server.close();
+
+  whyIsNodeRunning();
+});
+
+lightship.signalReady();
+
+```
+
+In the above example, calling `whyIsNodeRunning` will print a list of all active handles that are keeping the process alive.
+
 ## Related projects
 
 * [Iapetus](https://github.com/gajus/iapetus) – Prometheus metrics server.
