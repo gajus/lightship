@@ -127,7 +127,7 @@ export default (userConfiguration?: ConfigurationInputType): LightshipType => {
 
     if (configuration.timeout !== Infinity) {
       setTimeout(() => {
-        log.warn('timeout occured before all the shutdown handlers could run to completion; forcing termination');
+        log.warn('timeout occurred before all the shutdown handlers could run to completion; forcing termination');
 
         // eslint-disable-next-line no-process-exit
         process.exit(1);
@@ -178,7 +178,7 @@ export default (userConfiguration?: ConfigurationInputType): LightshipType => {
       }
 
       const timeoutId = setTimeout(() => {
-        log.warn('process did not exit on its own; invetigate what is keeping the event loop active');
+        log.warn('process did not exit on its own; investigate what is keeping the event loop active');
 
         // eslint-disable-next-line no-process-exit
         process.exit(1);
