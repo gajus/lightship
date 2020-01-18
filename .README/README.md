@@ -57,7 +57,7 @@ Used to configure readiness probe.
 
 ### Timeouts
 
-Lightship has two timeout configurations: `gracefulShutdownTimeout` (60 seconds) and `shutdownHandlerTimeout` (5 seconds).
+Lightship has two timeout configurations: `gracefulShutdownTimeout` and `shutdownHandlerTimeout`.
 
 `gracefulShutdownTimeout` (default: 60 seconds) is a number of milliseconds Lightship waits for Node.js process to exit gracefully after it receives a shutdown signal (either via `process` or by calling `lightship.shutdown()`) before killing the process using `process.exit(1)`. This timeout should be sufficiently big to allow Node.js process to complete tasks (if any) that are active at the time that the shutdown signal is received (e.g. complete serving responses to all HTTP requests) (Note: You must explicitly inform Lightship about active tasks using [beacons](#beacons)).
 
