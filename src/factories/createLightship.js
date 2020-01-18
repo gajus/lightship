@@ -4,6 +4,7 @@
 import EventEmitter from 'events';
 import delay from 'delay';
 import express from 'express';
+import httpClose from 'http-close';
 import {
   serializeError,
 } from 'serialize-error';
@@ -66,6 +67,8 @@ export default (userConfiguration?: ConfigurationInputType): LightshipType => {
   const server = app.listen(modeIsLocal ? undefined : configuration.port, () => {
     log.info('Lightship HTTP service is running on port %s', server.address().port);
   });
+
+  httpClose(server);
 
   app.get('/health', (request, response) => {
     if (serverIsShuttingDown) {
