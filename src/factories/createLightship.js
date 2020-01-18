@@ -185,17 +185,17 @@ export default (userConfiguration?: ConfigurationInputType): LightshipType => {
           error: serializeError(error),
         }, 'server was terminated with an error');
       }
-
-      const timeoutId = setTimeout(() => {
-        log.warn('process did not exit on its own; investigate what is keeping the event loop active');
-
-        // eslint-disable-next-line no-process-exit
-        process.exit(1);
-      }, 1000);
-
-      // $FlowFixMe
-      timeoutId.unref();
     });
+
+    const timeoutId = setTimeout(() => {
+      log.warn('process did not exit on its own; investigate what is keeping the event loop active');
+
+      // eslint-disable-next-line no-process-exit
+      process.exit(1);
+    }, 1000);
+
+    // $FlowFixMe
+    timeoutId.unref();
   };
 
   if (modeIsLocal) {
