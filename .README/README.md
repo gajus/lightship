@@ -55,6 +55,16 @@ The endpoint responds:
 
 Used to configure readiness probe.
 
+### Timeouts
+
+Lightship has two timeout configurations: `gracefulShutdownTimeout` (60 seconds) and `shutdownHandlerTimeout` (5 seconds).
+
+`gracefulShutdownTimeout` (default: 60 seconds) is a number of milliseconds Lightship waits for Node.js process to exit gracefully after it receives a shutdown signal (either via `process` or by calling `lightship.shutdown()`) before killing the process using `process.exit(1)`. This timeout should be sufficiently big to allow Node.js process to complete tasks (if any) that are active at the time that the shutdown signal is received (e.g. complete serving responses to all HTTP requests) (Note: You must explicitly inform Lightship about active tasks using [beacons](#beacons)).
+
+`shutdownHandlerTimeout` (default: 5 seconds) is a number of milliseconds Lightship waits for shutdown handlers (see `registerShutdownHandler`) to complete before killing the process using `process.exit(1)`.
+
+If after all beacons are dead and all shutdown handlers are resolved Node.js process does not exit gracefully, then Lightship will force terminate the process with an error. Refer to [How to detect what is holding the Node.js process alive?](#lightship-faq-how-to-detect-what-is-holding-the-node-js-process-alive).
+
 ## Usage
 
 Use `createLightship` to create an instance of Lightship.
@@ -80,15 +90,17 @@ type ShutdownHandlerType = () => Promise<void> | void;
 
 /**
  * @property detectKubernetes Run Lightship in local mode when Kubernetes is not detected. Default: true.
+ * @property gracefulShutdownTimeout A number of milliseconds before forcefull termination if process does not gracefully exit. The timer starts when `lightship.shutdown()` is called. This includes the time allowed to live beacons. Default: 60000.
  * @property port The port on which the Lightship service listens. This port must be different than your main service port, if any. The default port is 9000.
+ * @property shutdownHandlerTimeout A number of milliseconds before forcefull termination if shutdown handlers do not complete. The timer starts when the first shutdown handler is called. Default: 5000.
  * @property signals An a array of [signal events]{@link https://nodejs.org/api/process.html#process_signal_events}. Default: [SIGTERM].
- * @property timeout A number of milliseconds before forcefull termination. Default: 60000.
  */
 export type ConfigurationInputType = {|
   +detectKubernetes?: boolean,
+  +gracefulShutdownTimeout?: number,
   +port?: number,
+  +shutdownHandlerTimeout?: number,
   +signals?: $ReadOnlyArray<string>,
-  +timeout?: number
 |};
 
 /**

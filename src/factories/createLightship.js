@@ -30,13 +30,14 @@ const log = Logger.child({
 
 const defaultConfiguration = {
   detectKubernetes: true,
+  gracefulShutdownTimeout: 60000,
   port: 9000,
+  shutdownHandlerTimeout: 5000,
   signals: [
     'SIGTERM',
     'SIGHUP',
     'SIGINT',
   ],
-  timeout: 60000,
 };
 
 export default (userConfiguration?: ConfigurationInputType): LightshipType => {
@@ -50,6 +51,10 @@ export default (userConfiguration?: ConfigurationInputType): LightshipType => {
     ...defaultConfiguration,
     ...userConfiguration,
   };
+
+  if (configuration.gracefulShutdownTimeout < configuration.shutdownHandlerTimeout) {
+    throw new Error('gracefulShutdownTimeout cannot be lesser than shutdownHandlerTimeout.');
+  }
 
   let serverIsReady = false;
   let serverIsShuttingDown = false;
@@ -125,16 +130,18 @@ export default (userConfiguration?: ConfigurationInputType): LightshipType => {
 
     log.info('received request to shutdown the service');
 
-    if (configuration.timeout !== Infinity) {
-      setTimeout(() => {
-        log.warn('timeout occurred before all the shutdown handlers could run to completion; forcing termination');
+    let gracefulShutdownTimeoutId;
+
+    if (configuration.gracefulShutdownTimeout !== Infinity) {
+      gracefulShutdownTimeoutId = setTimeout(() => {
+        log.warn('graceful shutdown timeout; forcing termination');
 
         // eslint-disable-next-line no-process-exit
         process.exit(1);
-      }, configuration.timeout)
+      }, configuration.gracefulShutdownTimeout);
 
-        // $FlowFixMe
-        .unref();
+      // $FlowFixMe
+      gracefulShutdownTimeoutId.unref();
     }
 
     // @see https://github.com/gajus/lightship/issues/12
@@ -165,6 +172,24 @@ export default (userConfiguration?: ConfigurationInputType): LightshipType => {
       });
     }
 
+    if (gracefulShutdownTimeoutId) {
+      clearTimeout(gracefulShutdownTimeoutId);
+    }
+
+    let shutdownHandlerTimeoutId;
+
+    if (configuration.shutdownHandlerTimeout !== Infinity) {
+      shutdownHandlerTimeoutId = setTimeout(() => {
+        log.warn('shutdown handler timeout; forcing termination');
+
+        // eslint-disable-next-line no-process-exit
+        process.exit(1);
+      }, configuration.shutdownHandlerTimeout);
+
+      // $FlowFixMe
+      shutdownHandlerTimeoutId.unref();
+    }
+
     log.debug('running %d shutdown handler(s)', shutdownHandlers.length);
 
     for (const shutdownHandler of shutdownHandlers) {
@@ -175,6 +200,10 @@ export default (userConfiguration?: ConfigurationInputType): LightshipType => {
           error: serializeError(error),
         }, 'shutdown handler produced an error');
       }
+    }
+
+    if (shutdownHandlerTimeoutId) {
+      clearTimeout(shutdownHandlerTimeoutId);
     }
 
     log.debug('all shutdown handlers have run to completion; proceeding to terminate the Node.js process');

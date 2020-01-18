@@ -17,6 +17,7 @@ Abstracts readiness/ liveness checks and graceful shutdown of Node.js services r
         * [`/health`](#lightship-behaviour-health)
         * [`/live`](#lightship-behaviour-live)
         * [`/ready`](#lightship-behaviour-ready)
+        * [Timeouts](#lightship-behaviour-timeouts)
     * [Usage](#lightship-usage)
         * [Kubernetes container probe configuration](#lightship-usage-kubernetes-container-probe-configuration)
         * [Logging](#lightship-usage-logging)
@@ -28,6 +29,7 @@ Abstracts readiness/ liveness checks and graceful shutdown of Node.js services r
     * [FAQ](#lightship-faq)
         * [What is the reason that my liveness/ readiness endpoints are intermittently failing?](#lightship-faq-what-is-the-reason-that-my-liveness-readiness-endpoints-are-intermittently-failing)
         * [What is the reason for having separate `/live` and `/ready` endpoints?](#lightship-faq-what-is-the-reason-for-having-separate-live-and-ready-endpoints)
+        * [How to detect what is holding the Node.js process alive?](#lightship-faq-how-to-detect-what-is-holding-the-node-js-process-alive)
     * [Related projects](#lightship-related-projects)
 
 
@@ -79,6 +81,17 @@ The endpoint responds:
 
 Used to configure readiness probe.
 
+<a name="lightship-behaviour-timeouts"></a>
+### Timeouts
+
+Lightship has two timeout configurations: `gracefulShutdownTimeout` (60 seconds) and `shutdownHandlerTimeout` (5 seconds).
+
+`gracefulShutdownTimeout` (default: 60 seconds) is a number of milliseconds Lightship waits for Node.js process to exit gracefully after it receives a shutdown signal (either via `process` or by calling `lightship.shutdown()`) before killing the process using `process.exit(1)`. This timeout should be sufficiently big to allow Node.js process to complete tasks (if any) that are active at the time that the shutdown signal is received (e.g. complete serving responses to all HTTP requests) (Note: You must explicitly inform Lightship about active tasks using [beacons](#beacons)).
+
+`shutdownHandlerTimeout` (default: 5 seconds) is a number of milliseconds Lightship waits for shutdown handlers (see `registerShutdownHandler`) to complete before killing the process using `process.exit(1)`.
+
+If after all beacons are dead and all shutdown handlers are resolved Node.js process does not exit gracefully, then Lightship will force terminate the process with an error. Refer to [How to detect what is holding the Node.js process alive?](#lightship-faq-how-to-detect-what-is-holding-the-node-js-process-alive).
+
 <a name="lightship-usage"></a>
 ## Usage
 
@@ -105,15 +118,17 @@ type ShutdownHandlerType = () => Promise<void> | void;
 
 /**
  * @property detectKubernetes Run Lightship in local mode when Kubernetes is not detected. Default: true.
+ * @property gracefulShutdownTimeout A number of milliseconds before forcefull termination if process does not gracefully exit. The timer starts when `lightship.shutdown()` is called. This includes the time allowed to live beacons. Default: 60000.
  * @property port The port on which the Lightship service listens. This port must be different than your main service port, if any. The default port is 9000.
+ * @property shutdownHandlerTimeout A number of milliseconds before forcefull termination if shutdown handlers do not complete. The timer starts when the first shutdown handler is called. Default: 5000.
  * @property signals An a array of [signal events]{@link https://nodejs.org/api/process.html#process_signal_events}. Default: [SIGTERM].
- * @property timeout A number of milliseconds before forcefull termination. Default: 60000.
  */
 export type ConfigurationInputType = {|
   +detectKubernetes?: boolean,
+  +gracefulShutdownTimeout?: number,
   +port?: number,
+  +shutdownHandlerTimeout?: number,
   +signals?: $ReadOnlyArray<string>,
-  +timeout?: number
 |};
 
 /**
@@ -346,7 +361,7 @@ const beacon = lightship.createBeacon();
 
 ```
 
-Beacon is live upon creation. Shutdown handlers are suspended until there are live beacons.
+Beacon is live upon creation. Shutdown handlers are suspended until there are no live beacons.
 
 To singnal that a beacon is dead, use `die()` method:
 
@@ -466,6 +481,50 @@ Your options are:
 ### What is the reason for having separate <code>/live</code> and <code>/ready</code> endpoints?
 
 Distinct endpoints are needed if you want your Container to be able to take itself down for maintenance (as done in the [Using with Express.js](#lightship-usage-examples-using-with-express-js) usage example). Otherwise, you can use `/health`.
+
+<a name="lightship-faq-how-to-detect-what-is-holding-the-node-js-process-alive"></a>
+### How to detect what is holding the Node.js process alive?
+
+You may get a log message saying that your process did not exit on its own, e.g.
+
+```
+[2019-11-10T21:11:45.452Z] DEBUG (20) (@lightship) (#factories/createLightship): all shutdown handlers have run to completion; proceeding to terminate the Node.js process
+[2019-11-10T21:11:46.455Z] WARN (40) (@lightship) (#factories/createLightship): process did not exit on its own; investigate what is keeping the event loop active
+
+```
+
+This means that there is some work that is scheduled to happen (e.g. a referenced `setTimeout`).
+
+In order to understand what is keeping your Node.js process from exiting on its own, you need to identify all active handles and requests. This can be done with a help of utilities such as [`wtfnode`](https://www.npmjs.com/package/wtfnode) and [`why-is-node-running`](https://www.npmjs.com/package/why-is-node-running), e.g.
+
+```js
+import whyIsNodeRunning from 'why-is-node-running';
+import express from 'express';
+import {
+  createLightship
+} from 'lightship';
+
+const app = express();
+
+app.get('/', (req, res) => {
+  res.send('Hello, World!');
+});
+
+const server = app.listen(8080);
+
+const lightship = createLightship();
+
+lightship.registerShutdownHandler(() => {
+  server.close();
+
+  whyIsNodeRunning();
+});
+
+lightship.signalReady();
+
+```
+
+In the above example, calling `whyIsNodeRunning` will print a list of all active handles that are keeping the process alive.
 
 <a name="lightship-related-projects"></a>
 ## Related projects
