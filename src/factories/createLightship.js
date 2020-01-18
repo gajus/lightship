@@ -144,22 +144,28 @@ export default (userConfiguration?: ConfigurationInputType): LightshipType => {
     if (beacons.length) {
       await new Promise((resolve) => {
         const check = () => {
+          log.debug('checking if there are live beacons');
+
           if (beacons.length > 0) {
             log.info({
               beacons,
             }, 'program termination is on hold because there are live beacons');
           } else {
+            log.info('there are no live beacons; proceeding to terminate the Node.js process');
+
+            eventEmitter.off('beaconStateChange', check);
+
             resolve();
           }
         };
 
-        eventEmitter.on('beaconStateChange', () => {
-          check();
-        });
+        eventEmitter.on('beaconStateChange', check);
 
         check();
       });
     }
+
+    log.debug('running %d shutdown handler(s)', shutdownHandlers.length);
 
     for (const shutdownHandler of shutdownHandlers) {
       try {
