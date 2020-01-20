@@ -6,7 +6,7 @@ import delay from 'delay';
 import express from 'express';
 import {
   createHttpTerminator,
-} from 'http-termintaor';
+} from 'http-terminator';
 import {
   serializeError,
 } from 'serialize-error';
