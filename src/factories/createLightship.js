@@ -4,7 +4,9 @@
 import EventEmitter from 'events';
 import delay from 'delay';
 import express from 'express';
-import httpClose from 'http-close';
+import {
+  createHttpTerminator,
+} from 'http-termintaor';
 import {
   serializeError,
 } from 'serialize-error';
@@ -68,7 +70,9 @@ export default (userConfiguration?: ConfigurationInputType): LightshipType => {
     log.info('Lightship HTTP service is running on port %s', server.address().port);
   });
 
-  httpClose(server);
+  const httpTerminator = createHttpTerminator({
+    server,
+  });
 
   app.get('/health', (request, response) => {
     if (serverIsShuttingDown) {
@@ -211,13 +215,7 @@ export default (userConfiguration?: ConfigurationInputType): LightshipType => {
 
     log.debug('all shutdown handlers have run to completion; proceeding to terminate the Node.js process');
 
-    server.close((error) => {
-      if (error) {
-        log.error({
-          error: serializeError(error),
-        }, 'server was terminated with an error');
-      }
-    });
+    await httpTerminator.terminate();
 
     setTimeout(() => {
       log.warn('process did not exit on its own; investigate what is keeping the event loop active');
