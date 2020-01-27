@@ -9,7 +9,7 @@
 
 (Please read [Best practices](#best-practices) section.)
 
-Abstracts readiness/ liveness checks and graceful shutdown of Node.js services running in Kubernetes.
+Abstracts readiness, liveness and startup checks and graceful shutdown of Node.js services running in Kubernetes.
 
 * [Lightship 🚢](#lightship)
     * [Behaviour](#lightship-behaviour)
@@ -171,12 +171,27 @@ livenessProbe:
     port: 9000
   failureThreshold: 3
   initialDelaySeconds: 10
-  # Allow sufficient amount of time (180 seconds = periodSeconds * failureThreshold)
+  # Allow sufficient amount of time (90 seconds = periodSeconds * failureThreshold)
   # for the registered shutdown handlers to run to completion.
   periodSeconds: 30
   successThreshold: 1
   # Setting a very low timeout value (e.g. 1 second) can cause false-positive
   # checks and service interruption.
+  timeoutSeconds: 5
+
+# As per Kubernetes documentation (https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/#when-should-you-use-a-startup-probe),
+# startup probe should point to the same endpoint as the liveness probe.
+#
+# Startup probe is only needed when container is taking longer to start than
+# `initialDelaySeconds + failureThreshold × periodSeconds` of the liveness probe.
+startupProbe:
+  httpGet:
+    path: /live
+    port: 9000
+  failureThreshold: 3
+  initialDelaySeconds: 10
+  periodSeconds: 30
+  successThreshold: 1
   timeoutSeconds: 5
 
 ```

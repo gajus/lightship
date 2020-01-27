@@ -25,7 +25,7 @@
     "roarr": "^2.14.6",
     "serialize-error": "^5.0.0"
   },
-  "description": "Abstracts readiness/ liveness checks and graceful shutdown of Node.js services running in Kubernetes.",
+  "description": "Abstracts readiness, liveness and startup checks and graceful shutdown of Node.js services running in Kubernetes.",
   "devDependencies": {
     "@babel/cli": "^7.8.3",
     "@babel/core": "^7.8.3",
