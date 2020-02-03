@@ -7,13 +7,13 @@ import test, {
 import sinon from 'sinon';
 import delay from 'delay';
 import axios from 'axios';
-import createLightship from '../../src/factories/createLightship';
+import createLightship from '../../../src/factories/createLightship';
 import {
   SERVER_IS_NOT_READY,
   SERVER_IS_NOT_SHUTTING_DOWN,
   SERVER_IS_READY,
   SERVER_IS_SHUTTING_DOWN,
-} from '../../src/states';
+} from '../../../src/states';
 
 type ProbeStateType = {|
   +message: string,

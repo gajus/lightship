@@ -345,7 +345,7 @@ const beacon = lightship.createBeacon();
 
 Beacon is live upon creation. Shutdown handlers are suspended until there are no live beacons.
 
-To singnal that a beacon is dead, use `die()` method:
+To signal that a beacon is dead, use `die()` method:
 
 ```js
 beacon.die();
