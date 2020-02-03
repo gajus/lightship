@@ -20,7 +20,7 @@
   "dependencies": {
     "delay": "^4.3.0",
     "express": "^4.17.1",
-    "http-terminator": "^2.0.1",
+    "http-terminator": "^2.0.2",
     "roarr": "^2.15.2",
     "serialize-error": "^5.0.0"
   },
