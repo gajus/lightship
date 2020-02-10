@@ -65,19 +65,19 @@ test('server starts in SERVER_IS_NOT_READY state', async (t) => {
     terminate,
   });
 
-  t.true(lightship.isServerReady() === false);
-  t.true(lightship.isServerShuttingDown() === false);
+  t.is(lightship.isServerReady(), false);
+  t.is(lightship.isServerShuttingDown(), false);
 
   const serviceState = await getServiceState(lightship.server.address().port);
 
-  t.true(serviceState.health.status === 500);
-  t.true(serviceState.health.message === SERVER_IS_NOT_READY);
+  t.is(serviceState.health.status, 500);
+  t.is(serviceState.health.message, SERVER_IS_NOT_READY);
 
-  t.true(serviceState.live.status === 200);
-  t.true(serviceState.live.message === SERVER_IS_NOT_SHUTTING_DOWN);
+  t.is(serviceState.live.status, 200);
+  t.is(serviceState.live.message, SERVER_IS_NOT_SHUTTING_DOWN);
 
-  t.true(serviceState.ready.status === 500);
-  t.true(serviceState.ready.message === SERVER_IS_NOT_READY);
+  t.is(serviceState.ready.status, 500);
+  t.is(serviceState.ready.message, SERVER_IS_NOT_READY);
 
   await lightship.shutdown();
 
@@ -93,19 +93,19 @@ test('calling `signalReady` changes server state to SERVER_IS_READY', async (t) 
 
   lightship.signalReady();
 
-  t.true(lightship.isServerReady() === true);
-  t.true(lightship.isServerShuttingDown() === false);
+  t.is(lightship.isServerReady(), true);
+  t.is(lightship.isServerShuttingDown(), false);
 
   const serviceState = await getServiceState(lightship.server.address().port);
 
-  t.true(serviceState.health.status === 200);
-  t.true(serviceState.health.message === SERVER_IS_READY);
+  t.is(serviceState.health.status, 200);
+  t.is(serviceState.health.message, SERVER_IS_READY);
 
-  t.true(serviceState.live.status === 200);
-  t.true(serviceState.live.message === SERVER_IS_NOT_SHUTTING_DOWN);
+  t.is(serviceState.live.status, 200);
+  t.is(serviceState.live.message, SERVER_IS_NOT_SHUTTING_DOWN);
 
-  t.true(serviceState.ready.status === 200);
-  t.true(serviceState.ready.message === SERVER_IS_READY);
+  t.is(serviceState.ready.status, 200);
+  t.is(serviceState.ready.message, SERVER_IS_READY);
 
   await lightship.shutdown();
 
@@ -122,19 +122,19 @@ test('calling `signalNotReady` changes server state to SERVER_IS_NOT_READY', asy
   lightship.signalReady();
   lightship.signalNotReady();
 
-  t.true(lightship.isServerReady() === false);
-  t.true(lightship.isServerShuttingDown() === false);
+  t.is(lightship.isServerReady(), false);
+  t.is(lightship.isServerShuttingDown(), false);
 
   const serviceState = await getServiceState(lightship.server.address().port);
 
-  t.true(serviceState.health.status === 500);
-  t.true(serviceState.health.message === SERVER_IS_NOT_READY);
+  t.is(serviceState.health.status, 500);
+  t.is(serviceState.health.message, SERVER_IS_NOT_READY);
 
-  t.true(serviceState.live.status === 200);
-  t.true(serviceState.live.message === SERVER_IS_NOT_SHUTTING_DOWN);
+  t.is(serviceState.live.status, 200);
+  t.is(serviceState.live.message, SERVER_IS_NOT_SHUTTING_DOWN);
 
-  t.true(serviceState.ready.status === 500);
-  t.true(serviceState.ready.message === SERVER_IS_NOT_READY);
+  t.is(serviceState.ready.status, 500);
+  t.is(serviceState.ready.message, SERVER_IS_NOT_READY);
 
   await lightship.shutdown();
 
@@ -158,20 +158,20 @@ test('calling `shutdown` changes server state to SERVER_IS_SHUTTING_DOWN', async
 
   lightship.shutdown();
 
-  t.true(lightship.isServerReady() === true);
-  t.true(lightship.isServerShuttingDown() === true);
+  t.is(lightship.isServerReady(), true);
+  t.is(lightship.isServerShuttingDown(), true);
 
   const serviceState = await getServiceState(lightship.server.address().port);
 
-  t.true(serviceState.health.status === 500);
-  t.true(serviceState.health.message === SERVER_IS_SHUTTING_DOWN);
+  t.is(serviceState.health.status, 500);
+  t.is(serviceState.health.message, SERVER_IS_SHUTTING_DOWN);
 
-  t.true(serviceState.live.status === 500);
-  t.true(serviceState.live.message === SERVER_IS_SHUTTING_DOWN);
+  t.is(serviceState.live.status, 500);
+  t.is(serviceState.live.message, SERVER_IS_SHUTTING_DOWN);
 
   // @see https://github.com/gajus/lightship/issues/12
-  t.true(serviceState.ready.status === 200);
-  t.true(serviceState.ready.message === SERVER_IS_READY);
+  t.is(serviceState.ready.status, 200);
+  t.is(serviceState.ready.message, SERVER_IS_READY);
 
   if (!shutdown) {
     throw new Error('Unexpected state.');
@@ -214,8 +214,8 @@ test('error thrown from within a shutdown handler does not interrupt the shutdow
 
   await shutdown();
 
-  t.true(shutdownHandler0.callCount === 1);
-  t.true(shutdownHandler1.callCount === 1);
+  t.is(shutdownHandler0.callCount, 1);
+  t.is(shutdownHandler1.callCount, 1);
 
   t.is(terminate.called, false);
 });
@@ -237,15 +237,15 @@ test('calling `shutdown` multiple times results in shutdown handlers called once
 
   lightship.registerShutdownHandler(shutdownHandler);
 
-  t.true(shutdownHandler.callCount === 0);
+  t.is(shutdownHandler.callCount, 0);
 
   lightship.shutdown();
 
-  t.true(shutdownHandler.callCount === 1);
+  t.is(shutdownHandler.callCount, 1);
 
   lightship.shutdown();
 
-  t.true(shutdownHandler.callCount === 1);
+  t.is(shutdownHandler.callCount, 1);
 
   if (!shutdown) {
     throw new Error('Unexpected state.');
@@ -273,33 +273,33 @@ test('calling `signalNotReady` after `shutdown` does not have effect on server s
 
   lightship.signalReady();
 
-  t.true(lightship.isServerReady() === true);
-  t.true(lightship.isServerShuttingDown() === false);
+  t.is(lightship.isServerReady(), true);
+  t.is(lightship.isServerShuttingDown(), false);
 
   const serviceState0 = await getServiceState(lightship.server.address().port);
 
-  t.true(serviceState0.health.status === 200);
-  t.true(serviceState0.health.message === SERVER_IS_READY);
+  t.is(serviceState0.health.status, 200);
+  t.is(serviceState0.health.message, SERVER_IS_READY);
 
   lightship.shutdown();
 
-  t.true(lightship.isServerReady() === true);
-  t.true(lightship.isServerShuttingDown() === true);
+  t.is(lightship.isServerReady(), true);
+  t.is(lightship.isServerShuttingDown(), true);
 
   const serviceState1 = await getServiceState(lightship.server.address().port);
 
-  t.true(serviceState1.health.status === 500);
-  t.true(serviceState1.health.message === SERVER_IS_SHUTTING_DOWN);
+  t.is(serviceState1.health.status, 500);
+  t.is(serviceState1.health.message, SERVER_IS_SHUTTING_DOWN);
 
   lightship.signalNotReady();
 
-  t.true(lightship.isServerReady() === true);
-  t.true(lightship.isServerShuttingDown() === true);
+  t.is(lightship.isServerReady(), true);
+  t.is(lightship.isServerShuttingDown(), true);
 
   const serviceState2 = await getServiceState(lightship.server.address().port);
 
-  t.true(serviceState2.health.status === 500);
-  t.true(serviceState2.health.message === SERVER_IS_SHUTTING_DOWN);
+  t.is(serviceState2.health.status, 500);
+  t.is(serviceState2.health.message, SERVER_IS_SHUTTING_DOWN);
 
   if (!shutdown) {
     throw new Error('Unexpected state.');
