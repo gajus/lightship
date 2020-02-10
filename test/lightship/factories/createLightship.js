@@ -1,9 +1,6 @@
 // @flow
 
-import test, {
-  afterEach,
-  beforeEach,
-} from 'ava';
+import test from 'ava';
 import sinon from 'sinon';
 import delay from 'delay';
 import axios from 'axios';
@@ -61,16 +58,12 @@ const getServiceState = async (port: number = 9000): Promise<ServiceStateType> =
   };
 };
 
-beforeEach(() => {
-  sinon.stub(process, 'exit');
-});
-
-afterEach(() => {
-  process.exit.restore();
-});
-
 test('server starts in SERVER_IS_NOT_READY state', async (t) => {
-  const lightship = createLightship();
+  const terminate = sinon.stub();
+
+  const lightship = createLightship({
+    terminate,
+  });
 
   t.true(lightship.isServerReady() === false);
   t.true(lightship.isServerShuttingDown() === false);
@@ -87,10 +80,16 @@ test('server starts in SERVER_IS_NOT_READY state', async (t) => {
   t.true(serviceState.ready.message === SERVER_IS_NOT_READY);
 
   await lightship.shutdown();
+
+  t.is(terminate.called, false);
 });
 
 test('calling `signalReady` changes server state to SERVER_IS_READY', async (t) => {
-  const lightship = createLightship();
+  const terminate = sinon.stub();
+
+  const lightship = createLightship({
+    terminate,
+  });
 
   lightship.signalReady();
 
@@ -109,10 +108,16 @@ test('calling `signalReady` changes server state to SERVER_IS_READY', async (t) 
   t.true(serviceState.ready.message === SERVER_IS_READY);
 
   await lightship.shutdown();
+
+  t.is(terminate.called, false);
 });
 
 test('calling `signalNotReady` changes server state to SERVER_IS_NOT_READY', async (t) => {
-  const lightship = createLightship();
+  const terminate = sinon.stub();
+
+  const lightship = createLightship({
+    terminate,
+  });
 
   lightship.signalReady();
   lightship.signalNotReady();
@@ -132,10 +137,16 @@ test('calling `signalNotReady` changes server state to SERVER_IS_NOT_READY', asy
   t.true(serviceState.ready.message === SERVER_IS_NOT_READY);
 
   await lightship.shutdown();
+
+  t.is(terminate.called, false);
 });
 
 test('calling `shutdown` changes server state to SERVER_IS_SHUTTING_DOWN', async (t) => {
-  const lightship = createLightship();
+  const terminate = sinon.stub();
+
+  const lightship = createLightship({
+    terminate,
+  });
 
   let shutdown;
 
@@ -167,10 +178,16 @@ test('calling `shutdown` changes server state to SERVER_IS_SHUTTING_DOWN', async
   }
 
   await shutdown();
+
+  t.is(terminate.called, false);
 });
 
 test('error thrown from within a shutdown handler does not interrupt the shutdown sequence', async (t) => {
-  const lightship = createLightship();
+  const terminate = sinon.stub();
+
+  const lightship = createLightship({
+    terminate,
+  });
 
   const shutdownHandler0 = sinon.spy(async () => {
     throw new Error('test');
@@ -199,10 +216,16 @@ test('error thrown from within a shutdown handler does not interrupt the shutdow
 
   t.true(shutdownHandler0.callCount === 1);
   t.true(shutdownHandler1.callCount === 1);
+
+  t.is(terminate.called, false);
 });
 
 test('calling `shutdown` multiple times results in shutdown handlers called once', async (t) => {
-  const lightship = createLightship();
+  const terminate = sinon.stub();
+
+  const lightship = createLightship({
+    terminate,
+  });
 
   let shutdown;
 
@@ -229,10 +252,16 @@ test('calling `shutdown` multiple times results in shutdown handlers called once
   }
 
   await shutdown();
+
+  t.is(terminate.called, false);
 });
 
 test('calling `signalNotReady` after `shutdown` does not have effect on server state', async (t) => {
-  const lightship = createLightship();
+  const terminate = sinon.stub();
+
+  const lightship = createLightship({
+    terminate,
+  });
 
   let shutdown;
 
@@ -277,10 +306,16 @@ test('calling `signalNotReady` after `shutdown` does not have effect on server s
   }
 
   await shutdown();
+
+  t.is(terminate.called, false);
 });
 
 test('presence of live beacons suspend the shutdown routine', async (t) => {
-  const lightship = createLightship();
+  const terminate = sinon.stub();
+
+  const lightship = createLightship({
+    terminate,
+  });
 
   let shutdown;
 
@@ -309,4 +344,6 @@ test('presence of live beacons suspend the shutdown routine', async (t) => {
   }
 
   await shutdown();
+
+  t.is(terminate.called, false);
 });

@@ -41,6 +41,10 @@ const defaultConfiguration = {
     'SIGHUP',
     'SIGINT',
   ],
+  terminate: () => {
+    // eslint-disable-next-line no-process-exit
+    process.exit(1);
+  },
 };
 
 export default (userConfiguration?: ConfigurationInputType): LightshipType => {
@@ -143,8 +147,7 @@ export default (userConfiguration?: ConfigurationInputType): LightshipType => {
       gracefulShutdownTimeoutId = setTimeout(() => {
         log.warn('graceful shutdown timeout; forcing termination');
 
-        // eslint-disable-next-line no-process-exit
-        process.exit(1);
+        configuration.terminate();
       }, configuration.gracefulShutdownTimeout);
 
       // $FlowFixMe
@@ -189,8 +192,7 @@ export default (userConfiguration?: ConfigurationInputType): LightshipType => {
       shutdownHandlerTimeoutId = setTimeout(() => {
         log.warn('shutdown handler timeout; forcing termination');
 
-        // eslint-disable-next-line no-process-exit
-        process.exit(1);
+        configuration.terminate();
       }, configuration.shutdownHandlerTimeout);
 
       // $FlowFixMe
@@ -220,8 +222,7 @@ export default (userConfiguration?: ConfigurationInputType): LightshipType => {
     setTimeout(() => {
       log.warn('process did not exit on its own; investigate what is keeping the event loop active');
 
-      // eslint-disable-next-line no-process-exit
-      process.exit(1);
+      configuration.terminate();
     }, 1000)
 
       // $FlowFixMe

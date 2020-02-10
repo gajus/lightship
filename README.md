@@ -122,6 +122,7 @@ type ShutdownHandlerType = () => Promise<void> | void;
  * @property port The port on which the Lightship service listens. This port must be different than your main service port, if any. The default port is 9000.
  * @property shutdownHandlerTimeout A number of milliseconds before forcefull termination if shutdown handlers do not complete. The timer starts when the first shutdown handler is called. Default: 5000.
  * @property signals An a array of [signal events]{@link https://nodejs.org/api/process.html#process_signal_events}. Default: [SIGTERM].
+ * @property terminate Method used to terminate Node.js process. Default: `() => { process.exit(1) };`.
  */
 export type ConfigurationInputType = {|
   +detectKubernetes?: boolean,
@@ -129,6 +130,7 @@ export type ConfigurationInputType = {|
   +port?: number,
   +shutdownHandlerTimeout?: number,
   +signals?: $ReadOnlyArray<string>,
+  +terminate?: () => void,
 |};
 
 /**
