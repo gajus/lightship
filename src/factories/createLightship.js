@@ -155,6 +155,7 @@ export default (userConfiguration?: ConfigurationInputType): LightshipType => {
     }
 
     // @see https://github.com/gajus/lightship/issues/12
+    await delay(1000);
     serverIsReady = true;
     serverIsShuttingDown = true;
 
