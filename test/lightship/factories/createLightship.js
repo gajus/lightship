@@ -158,7 +158,7 @@ test('calling `shutdown` changes server state to SERVER_IS_SHUTTING_DOWN', async
 
   lightship.shutdown();
 
-  t.is(lightship.isServerReady(), true);
+  t.is(lightship.isServerReady(), false);
   t.is(lightship.isServerShuttingDown(), true);
 
   const serviceState = await getServiceState(lightship.server.address().port);
@@ -169,9 +169,8 @@ test('calling `shutdown` changes server state to SERVER_IS_SHUTTING_DOWN', async
   t.is(serviceState.live.status, 500);
   t.is(serviceState.live.message, SERVER_IS_SHUTTING_DOWN);
 
-  // @see https://github.com/gajus/lightship/issues/12
-  t.is(serviceState.ready.status, 200);
-  t.is(serviceState.ready.message, SERVER_IS_READY);
+  t.is(serviceState.ready.status, 500);
+  t.is(serviceState.ready.message, SERVER_IS_NOT_READY);
 
   if (!shutdown) {
     throw new Error('Unexpected state.');
@@ -180,6 +179,23 @@ test('calling `shutdown` changes server state to SERVER_IS_SHUTTING_DOWN', async
   await shutdown();
 
   t.is(terminate.called, false);
+});
+
+test('invoking `shutdown` using a signal causes SERVER_IS_READY', (t) => {
+  const terminate = sinon.stub();
+
+  const lightship = createLightship({
+    detectKubernetes: false,
+    signals: [
+      'LIGHTSHIP_TEST',
+    ],
+    terminate,
+  });
+
+  process.emit('LIGHTSHIP_TEST');
+
+  t.is(lightship.isServerReady(), true);
+  t.is(lightship.isServerShuttingDown(), true);
 });
 
 test('error thrown from within a shutdown handler does not interrupt the shutdown sequence', async (t) => {
@@ -246,60 +262,6 @@ test('calling `shutdown` multiple times results in shutdown handlers called once
   lightship.shutdown();
 
   t.is(shutdownHandler.callCount, 1);
-
-  if (!shutdown) {
-    throw new Error('Unexpected state.');
-  }
-
-  await shutdown();
-
-  t.is(terminate.called, false);
-});
-
-test('calling `signalNotReady` after `shutdown` does not have effect on server state', async (t) => {
-  const terminate = sinon.stub();
-
-  const lightship = createLightship({
-    terminate,
-  });
-
-  let shutdown;
-
-  lightship.registerShutdownHandler(() => {
-    return new Promise((resolve) => {
-      shutdown = resolve;
-    });
-  });
-
-  lightship.signalReady();
-
-  t.is(lightship.isServerReady(), true);
-  t.is(lightship.isServerShuttingDown(), false);
-
-  const serviceState0 = await getServiceState(lightship.server.address().port);
-
-  t.is(serviceState0.health.status, 200);
-  t.is(serviceState0.health.message, SERVER_IS_READY);
-
-  lightship.shutdown();
-
-  t.is(lightship.isServerReady(), true);
-  t.is(lightship.isServerShuttingDown(), true);
-
-  const serviceState1 = await getServiceState(lightship.server.address().port);
-
-  t.is(serviceState1.health.status, 500);
-  t.is(serviceState1.health.message, SERVER_IS_SHUTTING_DOWN);
-
-  lightship.signalNotReady();
-
-  t.is(lightship.isServerReady(), true);
-  t.is(lightship.isServerShuttingDown(), true);
-
-  const serviceState2 = await getServiceState(lightship.server.address().port);
-
-  t.is(serviceState2.health.status, 500);
-  t.is(serviceState2.health.message, SERVER_IS_SHUTTING_DOWN);
 
   if (!shutdown) {
     throw new Error('Unexpected state.');

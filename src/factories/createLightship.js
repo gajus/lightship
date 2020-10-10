@@ -105,12 +105,6 @@ export default (userConfiguration?: ConfigurationInputType): LightshipType => {
   });
 
   const signalNotReady = () => {
-    if (serverIsShuttingDown) {
-      log.warn('server is already shutting down');
-
-      return;
-    }
-
     if (serverIsReady === false) {
       log.warn('server is already in a SERVER_IS_NOT_READY state');
     }
@@ -132,7 +126,7 @@ export default (userConfiguration?: ConfigurationInputType): LightshipType => {
     serverIsReady = true;
   };
 
-  const shutdown = async () => {
+  const shutdown = async (nextReady: boolean) => {
     if (serverIsShuttingDown) {
       log.warn('server is already shutting down');
 
@@ -155,7 +149,8 @@ export default (userConfiguration?: ConfigurationInputType): LightshipType => {
     }
 
     // @see https://github.com/gajus/lightship/issues/12
-    serverIsReady = true;
+    // @see https://github.com/gajus/lightship/issues/25
+    serverIsReady = nextReady;
     serverIsShuttingDown = true;
 
     if (beacons.length) {
@@ -238,7 +233,7 @@ export default (userConfiguration?: ConfigurationInputType): LightshipType => {
           signal,
         }, 'received a shutdown signal');
 
-        shutdown();
+        shutdown(true);
       });
     }
   }
@@ -277,7 +272,9 @@ export default (userConfiguration?: ConfigurationInputType): LightshipType => {
       shutdownHandlers.push(shutdownHandler);
     },
     server,
-    shutdown,
+    shutdown: () => {
+      return shutdown(false);
+    },
     signalNotReady,
     signalReady,
   };
