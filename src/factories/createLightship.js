@@ -35,6 +35,7 @@ const defaultConfiguration = {
   detectKubernetes: true,
   gracefulShutdownTimeout: 60000,
   port: 9000,
+  shutdownDelay: 5000,
   shutdownHandlerTimeout: 5000,
   signals: [
     'SIGTERM',
@@ -133,7 +134,18 @@ export default (userConfiguration?: ConfigurationInputType): LightshipType => {
       return;
     }
 
+    // @see https://github.com/gajus/lightship/issues/12
+    // @see https://github.com/gajus/lightship/issues/25
+    serverIsReady = nextReady;
+    serverIsShuttingDown = true;
+
     log.info('received request to shutdown the service');
+
+    if (configuration.shutdownDelay) {
+      log.debug('delaying shutdown handler by %d seconds', configuration.shutdownDelay / 1000);
+
+      await delay(configuration.shutdownDelay);
+    }
 
     let gracefulShutdownTimeoutId;
 
@@ -147,11 +159,6 @@ export default (userConfiguration?: ConfigurationInputType): LightshipType => {
       // $FlowFixMe
       gracefulShutdownTimeoutId.unref();
     }
-
-    // @see https://github.com/gajus/lightship/issues/12
-    // @see https://github.com/gajus/lightship/issues/25
-    serverIsReady = nextReady;
-    serverIsShuttingDown = true;
 
     if (beacons.length) {
       await new Promise((resolve) => {

@@ -62,6 +62,7 @@ test('server starts in SERVER_IS_NOT_READY state', async (t) => {
   const terminate = sinon.stub();
 
   const lightship = createLightship({
+    shutdownDelay: 0,
     terminate,
   });
 
@@ -88,6 +89,7 @@ test('calling `signalReady` changes server state to SERVER_IS_READY', async (t) 
   const terminate = sinon.stub();
 
   const lightship = createLightship({
+    shutdownDelay: 0,
     terminate,
   });
 
@@ -116,6 +118,7 @@ test('calling `signalNotReady` changes server state to SERVER_IS_NOT_READY', asy
   const terminate = sinon.stub();
 
   const lightship = createLightship({
+    shutdownDelay: 0,
     terminate,
   });
 
@@ -145,6 +148,7 @@ test('calling `shutdown` changes server state to SERVER_IS_SHUTTING_DOWN', async
   const terminate = sinon.stub();
 
   const lightship = createLightship({
+    shutdownDelay: 0,
     terminate,
   });
 
@@ -186,6 +190,7 @@ test('invoking `shutdown` using a signal causes SERVER_IS_READY', (t) => {
 
   const lightship = createLightship({
     detectKubernetes: false,
+    shutdownDelay: 0,
     signals: [
       'LIGHTSHIP_TEST',
     ],
@@ -202,6 +207,7 @@ test('error thrown from within a shutdown handler does not interrupt the shutdow
   const terminate = sinon.stub();
 
   const lightship = createLightship({
+    shutdownDelay: 0,
     terminate,
   });
 
@@ -240,6 +246,7 @@ test('calling `shutdown` multiple times results in shutdown handlers called once
   const terminate = sinon.stub();
 
   const lightship = createLightship({
+    shutdownDelay: 0,
     terminate,
   });
 
@@ -276,6 +283,7 @@ test('presence of live beacons suspend the shutdown routine', async (t) => {
   const terminate = sinon.stub();
 
   const lightship = createLightship({
+    shutdownDelay: 0,
     terminate,
   });
 
@@ -298,6 +306,43 @@ test('presence of live beacons suspend the shutdown routine', async (t) => {
   t.is(shutdownHandler.callCount, 0);
 
   await beacon.die();
+
+  t.is(shutdownHandler.callCount, 1);
+
+  if (!shutdown) {
+    throw new Error('Unexpected state.');
+  }
+
+  await shutdown();
+
+  t.is(terminate.called, false);
+});
+
+test('delays shutdown handlers', async (t) => {
+  const terminate = sinon.stub();
+
+  const lightship = createLightship({
+    shutdownDelay: 1000,
+    terminate,
+  });
+
+  let shutdown;
+
+  const shutdownHandler = sinon.spy(() => {
+    return new Promise((resolve) => {
+      shutdown = resolve;
+    });
+  });
+
+  lightship.registerShutdownHandler(shutdownHandler);
+
+  lightship.shutdown();
+
+  await delay(500);
+
+  t.is(shutdownHandler.callCount, 0);
+
+  await delay(1000);
 
   t.is(shutdownHandler.callCount, 1);
 
