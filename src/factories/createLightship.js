@@ -233,7 +233,7 @@ export default (userConfiguration?: ConfigurationInputType): LightshipType => {
           signal,
         }, 'received a shutdown signal');
 
-        shutdown(true);
+        shutdown(false);
       });
     }
   }

@@ -194,7 +194,7 @@ test('invoking `shutdown` using a signal causes SERVER_IS_READY', (t) => {
 
   process.emit('LIGHTSHIP_TEST');
 
-  t.is(lightship.isServerReady(), true);
+  t.is(lightship.isServerReady(), false);
   t.is(lightship.isServerShuttingDown(), true);
 });
 
