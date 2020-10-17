@@ -419,7 +419,7 @@ Properly shutting down an application includes these steps:
 3. Wait for all active requests to finish, and then
 4. Shut down completely.
 
-See [Handling Client Requests Properly with Kubernetes](https://freecontent.manning.com/handling-client-requests-properly-with-kubernetes/) for more information.
+See [Handling Client Requests Properly with Kubernetes](https://web.archive.org/web/20200807161820/https://freecontent.manning.com/handling-client-requests-properly-with-kubernetes/) for more information.
 
 ## FAQ
 
