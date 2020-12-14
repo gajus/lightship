@@ -54,6 +54,11 @@ export default (userConfiguration?: ConfigurationInputType): LightshipType => {
 
   const deferredFirstReady = new Deferred();
 
+  // eslint-disable-next-line promise/always-return, promise/catch-or-return
+  deferredFirstReady.promise.then(() => {
+    log.info('service became available for the first time');
+  });
+
   const eventEmitter = new EventEmitter();
 
   const beacons = [];
@@ -138,6 +143,10 @@ export default (userConfiguration?: ConfigurationInputType): LightshipType => {
     }
 
     log.info('signaling that the server is ready');
+
+    if (blockingTasks.length > 0) {
+      log.debug('service will not become immediately ready because there are blocking tasks');
+    }
 
     serverIsReady = true;
 
