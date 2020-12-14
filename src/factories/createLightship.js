@@ -50,6 +50,8 @@ const defaultConfiguration = {
 };
 
 export default (userConfiguration?: ConfigurationInputType): LightshipType => {
+  let blockingTasks = [];
+
   const deferredFirstReady = new Deferred();
 
   const eventEmitter = new EventEmitter();
@@ -69,6 +71,16 @@ export default (userConfiguration?: ConfigurationInputType): LightshipType => {
 
   let serverIsReady = false;
   let serverIsShuttingDown = false;
+
+  const isServerReady = () => {
+    if (blockingTasks.length > 0) {
+      log.debug('service is not ready because there are blocking tasks');
+
+      return false;
+    }
+
+    return serverIsReady;
+  };
 
   const app = express();
 
@@ -129,7 +141,9 @@ export default (userConfiguration?: ConfigurationInputType): LightshipType => {
 
     serverIsReady = true;
 
-    deferredFirstReady.resolve();
+    if (blockingTasks.length === 0) {
+      deferredFirstReady.resolve();
+    }
   };
 
   const shutdown = async (nextReady: boolean) => {
@@ -274,11 +288,25 @@ export default (userConfiguration?: ConfigurationInputType): LightshipType => {
 
   return {
     createBeacon,
-    isServerReady: () => {
-      return serverIsReady;
-    },
+    isServerReady,
     isServerShuttingDown: () => {
       return serverIsShuttingDown;
+    },
+    queueBlockingTask: (blockingTask) => {
+      blockingTasks.push(blockingTask);
+
+      // eslint-disable-next-line promise/catch-or-return
+      blockingTask.then((result) => {
+        blockingTasks = blockingTasks.filter((maybeTargetBlockingTask) => {
+          return maybeTargetBlockingTask !== blockingTask;
+        });
+
+        if (blockingTasks.length === 0 && serverIsReady === true) {
+          deferredFirstReady.resolve();
+        }
+
+        return result;
+      });
     },
     registerShutdownHandler: (shutdownHandler) => {
       shutdownHandlers.push(shutdownHandler);

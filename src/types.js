@@ -56,11 +56,15 @@ export opaque type StateType =
  * @property shutdown Changes server state to SERVER_IS_SHUTTING_DOWN and initialises the shutdown of the application.
  * @property signalNotReady Changes server state to SERVER_IS_NOT_READY.
  * @property signalReady Changes server state to SERVER_IS_READY.
+ * @property queueBlockingTask Forces service state to SERVER_IS_NOT_READY until all promises are resolved.
  */
 export type LightshipType = {|
   +createBeacon: (context?: BeaconContextType) => BeaconControllerType,
   +isServerReady: () => boolean,
   +isServerShuttingDown: () => boolean,
+
+  // eslint-disable-next-line flowtype/no-weak-types
+  +queueBlockingTask: (blockingTask: Promise<any>) => void,
   +registerShutdownHandler: (shutdownHandler: ShutdownHandlerType) => void,
   +server: Server,
   +shutdown: () => Promise<void>,

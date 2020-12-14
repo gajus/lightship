@@ -21,6 +21,7 @@ Abstracts readiness, liveness and startup checks and graceful shutdown of Node.j
     * [Usage](#lightship-usage)
         * [Kubernetes container probe configuration](#lightship-usage-kubernetes-container-probe-configuration)
         * [Logging](#lightship-usage-logging)
+        * [Queueing service blocking tasks](#lightship-usage-queueing-service-blocking-tasks)
         * [Waiting for the server to become ready](#lightship-usage-waiting-for-the-server-to-become-ready)
     * [Usage examples](#lightship-usage-examples)
         * [Using with Express.js](#lightship-usage-examples-using-with-express-js)
@@ -137,6 +138,7 @@ export type ConfigurationInputType = {|
 |};
 
 /**
+ * @property queueBlockingTask Forces service state to SERVER_IS_NOT_READY until all promises are resolved.
  * @property registerShutdownHandler Registers teardown functions that are called when shutdown is initialized. All registered shutdown handlers are executed in the order they have been registered. After all shutdown handlers have been executed, Lightship asks `process.exit()` to terminate the process synchronously.
  * @property shutdown Changes server state to SERVER_IS_SHUTTING_DOWN and initialises the shutdown of the application.
  * @property signalNotReady Changes server state to SERVER_IS_NOT_READY.
@@ -147,6 +149,7 @@ type LightshipType = {|
   +createBeacon: (context?: BeaconContextType) => BeaconControllerType,
   +isServerReady: () => boolean,
   +isServerShuttingDown: () => boolean,
+  +queueBlockingTask: (blockingTask: Promise<any>) => void,
   +registerShutdownHandler: (shutdownHandler: ShutdownHandlerType) => void,
   +server: http$Server,
   +shutdown: () => Promise<void>,
@@ -210,8 +213,46 @@ startupProbe:
 
 Set `ROARR_LOG=true` environment variable to enable logging.
 
+<a name="lightship-usage-queueing-service-blocking-tasks"></a>
+### Queueing service blocking tasks
+
+Your service may not be ready until some asynchronous operation is complete, e.g. waiting for [`webpack-dev-middleware#waitUntilValid`](https://github.com/webpack/webpack-dev-middleware#waituntilvalidcallback). In this case, use `queueBlockingTask` to queue blocking tasks. This way, Lightship status will be set to `SERVER_IS_NOT_READY` until all blocking tasks are resolved (and `signalReady` has been called).
+
+```js
+import express from 'express';
+import {
+  createLightship
+} from 'lightship';
+
+const lightship = createLightship();
+
+lightship.queueBlockingTask(new Promise((resolve) => {
+  setTimeout(() => {
+    // Lightship service status will be `SERVER_IS_NOT_READY` until all promises
+    // submitted to `queueBlockingTask` are resolved.
+    resolve();
+  }, 1000);
+}));
+
+const app = express();
+
+app.get('/', (req, res) => {
+  res.send('Hello, World!');
+});
+
+const server = app.listen(8080, () => {
+  // All signals will be queued until after all blocking tasks are resolved.
+  lightship.signalReady();
+});
+
+```
+
 <a name="lightship-usage-waiting-for-the-server-to-become-ready"></a>
 ### Waiting for the server to become ready
+
+`whenFirstReady` can be used to wait until the first time the service becomes ready.
+
+The promise returned by `whenFirstReady` is resolved only once. Use this function to delay execution of tasks that depend on the server to be ready.
 
 ```js
 import express from 'express';

@@ -3,6 +3,7 @@
 import test from 'ava';
 import axios from 'axios';
 import delay from 'delay';
+import Deferred from 'promise-deferred';
 import sinon from 'sinon';
 import createLightship from '../../../src/factories/createLightship';
 import {
@@ -131,6 +132,56 @@ test('calling `signalReady` resolves `whenFirstReady`', async (t) => {
   await lightship.whenFirstReady();
 
   t.true(Date.now() - startTime > 90);
+});
+
+test('`queueBlockingTask` forces service into SERVER_IS_NOT_READY until blocking tasks are resolved', async (t) => {
+  const terminate = sinon.stub();
+
+  const lightship = createLightship({
+    shutdownDelay: 0,
+    terminate,
+  });
+
+  const blockingTask = new Deferred();
+
+  lightship.queueBlockingTask(blockingTask.promise);
+
+  lightship.signalReady();
+
+  t.is(lightship.isServerReady(), false);
+
+  blockingTask.resolve();
+
+  await delay(0);
+
+  t.is(lightship.isServerReady(), true);
+});
+
+test('`whenFirstReady` resolves when all blocking tasks are resolved', async (t) => {
+  const terminate = sinon.stub();
+
+  const lightship = createLightship({
+    shutdownDelay: 0,
+    terminate,
+  });
+
+  lightship.queueBlockingTask(
+    new Promise((resolve) => {
+      setTimeout(() => {
+        resolve();
+      }, 200);
+    }),
+  );
+
+  setTimeout(() => {
+    lightship.signalReady();
+  }, 100);
+
+  const startTime = Date.now();
+
+  await lightship.whenFirstReady();
+
+  t.true(Date.now() - startTime > 190);
 });
 
 test('calling `signalNotReady` changes server state to SERVER_IS_NOT_READY', async (t) => {
