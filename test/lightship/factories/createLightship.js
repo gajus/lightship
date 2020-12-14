@@ -114,6 +114,25 @@ test('calling `signalReady` changes server state to SERVER_IS_READY', async (t) 
   t.is(terminate.called, false);
 });
 
+test('calling `signalReady` resolves `whenFirstReady`', async (t) => {
+  const terminate = sinon.stub();
+
+  const lightship = createLightship({
+    shutdownDelay: 0,
+    terminate,
+  });
+
+  setTimeout(() => {
+    lightship.signalReady();
+  }, 100);
+
+  const startTime = Date.now();
+
+  await lightship.whenFirstReady();
+
+  t.true(Date.now() - startTime > 100);
+});
+
 test('calling `signalNotReady` changes server state to SERVER_IS_NOT_READY', async (t) => {
   const terminate = sinon.stub();
 
@@ -354,3 +373,4 @@ test('delays shutdown handlers', async (t) => {
 
   t.is(terminate.called, false);
 });
+

@@ -7,6 +7,7 @@ import express from 'express';
 import {
   createHttpTerminator,
 } from 'http-terminator';
+import Deferred from 'promise-deferred';
 import {
   serializeError,
 } from 'serialize-error';
@@ -49,6 +50,8 @@ const defaultConfiguration = {
 };
 
 export default (userConfiguration?: ConfigurationInputType): LightshipType => {
+  const deferredFirstReady = new Deferred();
+
   const eventEmitter = new EventEmitter();
 
   const beacons = [];
@@ -125,6 +128,8 @@ export default (userConfiguration?: ConfigurationInputType): LightshipType => {
     log.info('signaling that the server is ready');
 
     serverIsReady = true;
+
+    deferredFirstReady.resolve();
   };
 
   const shutdown = async (nextReady: boolean) => {
@@ -284,5 +289,8 @@ export default (userConfiguration?: ConfigurationInputType): LightshipType => {
     },
     signalNotReady,
     signalReady,
+    whenFirstReady: () => {
+      return deferredFirstReady.promise;
+    },
   };
 };

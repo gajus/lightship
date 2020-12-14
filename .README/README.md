@@ -112,6 +112,7 @@ export type ConfigurationInputType = {|
  * @property shutdown Changes server state to SERVER_IS_SHUTTING_DOWN and initialises the shutdown of the application.
  * @property signalNotReady Changes server state to SERVER_IS_NOT_READY.
  * @property signalReady Changes server state to SERVER_IS_READY.
+ * @property whenFirstReady Resolves the first time the service goes from `SERVER_IS_NOT_READY` to `SERVER_IS_READY` state.
  */
 type LightshipType = {|
   +createBeacon: (context?: BeaconContextType) => BeaconControllerType,
@@ -121,7 +122,8 @@ type LightshipType = {|
   +server: http$Server,
   +shutdown: () => Promise<void>,
   +signalNotReady: () => void,
-  +signalReady: () => void
+  +signalReady: () => void,
+  +whenFirstReady: () => Promise<void>,
 |};
 
 ```
@@ -177,6 +179,36 @@ startupProbe:
 
 Set `ROARR_LOG=true` environment variable to enable logging.
 
+### Waiting for the server to become ready
+
+```js
+import express from 'express';
+import {
+  createLightship
+} from 'lightship';
+
+const lightship = createLightship();
+
+const app = express();
+
+app.get('/', (req, res) => {
+  res.send('Hello, World!');
+});
+
+const server = app.listen(8080, () => {
+  lightship.signalReady();
+});
+
+(async () => {
+  // `whenFirstReady` returns a promise that is resolved the first time that
+  // the service goes from `SERVER_IS_NOT_READY` to `SERVER_IS_READY` state.
+  await lightship.whenFirstReady();
+
+  await runIntegrationTests();
+})();
+
+```
+
 ## Usage examples
 
 ### Using with Express.js
@@ -210,17 +242,21 @@ app.get('/', (req, res) => {
   res.send('Hello, World!');
 });
 
-const server = app.listen(8080);
+const server = app
+  .listen(8080, () => {
+    // Lightship default state is "SERVER_IS_NOT_READY". Therefore, you must signal
+    // that the server is now ready to accept connections.
+    lightship.signalReady();
+  })
+  .on('error', () => {
+    lightship.shutdown();
+  });;
 
 const lightship = createLightship();
 
 lightship.registerShutdownHandler(() => {
   server.close();
 });
-
-// Lightship default state is "SERVER_IS_NOT_READY". Therefore, you must signal
-// that the server is now ready to accept connections.
-lightship.signalReady();
 
 ```
 

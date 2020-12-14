@@ -21,6 +21,7 @@ Abstracts readiness, liveness and startup checks and graceful shutdown of Node.j
     * [Usage](#lightship-usage)
         * [Kubernetes container probe configuration](#lightship-usage-kubernetes-container-probe-configuration)
         * [Logging](#lightship-usage-logging)
+        * [Waiting for the server to become ready](#lightship-usage-waiting-for-the-server-to-become-ready)
     * [Usage examples](#lightship-usage-examples)
         * [Using with Express.js](#lightship-usage-examples-using-with-express-js)
         * [Beacons](#lightship-usage-examples-beacons)
@@ -120,6 +121,7 @@ type ShutdownHandlerType = () => Promise<void> | void;
  * @property detectKubernetes Run Lightship in local mode when Kubernetes is not detected. Default: true.
  * @property gracefulShutdownTimeout A number of milliseconds before forcefull termination if process does not gracefully exit. The timer starts when `lightship.shutdown()` is called. This includes the time allowed to live beacons. Default: 60000.
  * @property port The port on which the Lightship service listens. This port must be different than your main service port, if any. The default port is 9000.
+ * @property shutdownDelay Delays the shutdown handler by X milliseconds. This value should match `readinessProbe.periodSeconds`. Default 5000.
  * @property shutdownHandlerTimeout A number of milliseconds before forcefull termination if shutdown handlers do not complete. The timer starts when the first shutdown handler is called. Default: 5000.
  * @property signals An a array of [signal events]{@link https://nodejs.org/api/process.html#process_signal_events}. Default: [SIGTERM].
  * @property terminate Method used to terminate Node.js process. Default: `() => { process.exit(1) };`.
@@ -128,6 +130,7 @@ export type ConfigurationInputType = {|
   +detectKubernetes?: boolean,
   +gracefulShutdownTimeout?: number,
   +port?: number,
+  +shutdownDelay?: number,
   +shutdownHandlerTimeout?: number,
   +signals?: $ReadOnlyArray<string>,
   +terminate?: () => void,
@@ -138,6 +141,7 @@ export type ConfigurationInputType = {|
  * @property shutdown Changes server state to SERVER_IS_SHUTTING_DOWN and initialises the shutdown of the application.
  * @property signalNotReady Changes server state to SERVER_IS_NOT_READY.
  * @property signalReady Changes server state to SERVER_IS_READY.
+ * @property whenFirstReady Resolves the first time the service goes from `SERVER_IS_NOT_READY` to `SERVER_IS_READY` state.
  */
 type LightshipType = {|
   +createBeacon: (context?: BeaconContextType) => BeaconControllerType,
@@ -147,7 +151,8 @@ type LightshipType = {|
   +server: http$Server,
   +shutdown: () => Promise<void>,
   +signalNotReady: () => void,
-  +signalReady: () => void
+  +signalReady: () => void,
+  +whenFirstReady: () => Promise<void>,
 |};
 
 ```
@@ -205,6 +210,37 @@ startupProbe:
 
 Set `ROARR_LOG=true` environment variable to enable logging.
 
+<a name="lightship-usage-waiting-for-the-server-to-become-ready"></a>
+### Waiting for the server to become ready
+
+```js
+import express from 'express';
+import {
+  createLightship
+} from 'lightship';
+
+const lightship = createLightship();
+
+const app = express();
+
+app.get('/', (req, res) => {
+  res.send('Hello, World!');
+});
+
+const server = app.listen(8080, () => {
+  lightship.signalReady();
+});
+
+(async () => {
+  // `whenFirstReady` returns a promise that is resolved the first time that
+  // the service goes from `SERVER_IS_NOT_READY` to `SERVER_IS_READY` state.
+  await lightship.whenFirstReady();
+
+  await runIntegrationTests();
+})();
+
+```
+
 <a name="lightship-usage-examples"></a>
 ## Usage examples
 
@@ -240,17 +276,21 @@ app.get('/', (req, res) => {
   res.send('Hello, World!');
 });
 
-const server = app.listen(8080);
+const server = app
+  .listen(8080, () => {
+    // Lightship default state is "SERVER_IS_NOT_READY". Therefore, you must signal
+    // that the server is now ready to accept connections.
+    lightship.signalReady();
+  })
+  .on('error', () => {
+    lightship.shutdown();
+  });;
 
 const lightship = createLightship();
 
 lightship.registerShutdownHandler(() => {
   server.close();
 });
-
-// Lightship default state is "SERVER_IS_NOT_READY". Therefore, you must signal
-// that the server is now ready to accept connections.
-lightship.signalReady();
 
 ```
 
@@ -452,7 +492,7 @@ Properly shutting down an application includes these steps:
 3. Wait for all active requests to finish, and then
 4. Shut down completely.
 
-See [Handling Client Requests Properly with Kubernetes](https://freecontent.manning.com/handling-client-requests-properly-with-kubernetes/) for more information.
+See [Handling Client Requests Properly with Kubernetes](https://web.archive.org/web/20200807161820/https://freecontent.manning.com/handling-client-requests-properly-with-kubernetes/) for more information.
 
 <a name="lightship-faq"></a>
 ## FAQ

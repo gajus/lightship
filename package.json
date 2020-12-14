@@ -21,6 +21,7 @@
     "delay": "^4.4.0",
     "express": "^4.17.1",
     "http-terminator": "^2.0.3",
+    "promise-deferred": "^2.0.3",
     "roarr": "^2.15.4",
     "serialize-error": "^7.0.1"
   },
