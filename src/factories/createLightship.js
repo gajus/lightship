@@ -11,18 +11,18 @@ import {
   serializeError,
 } from 'serialize-error';
 import Logger from '../Logger';
-import type {
-  ConfigurationInputType,
-  ConfigurationType,
-  LightshipType,
-  ShutdownHandlerType,
-} from '../types';
 import {
   SERVER_IS_NOT_READY,
   SERVER_IS_NOT_SHUTTING_DOWN,
   SERVER_IS_READY,
   SERVER_IS_SHUTTING_DOWN,
 } from '../states';
+import type {
+  ConfigurationInputType,
+  ConfigurationType,
+  LightshipType,
+  ShutdownHandlerType,
+} from '../types';
 import {
   isKubernetes,
 } from '../utilities';
@@ -33,10 +33,10 @@ const log = Logger.child({
 
 const defaultConfiguration = {
   detectKubernetes: true,
-  gracefulShutdownTimeout: 60000,
-  port: 9000,
-  shutdownDelay: 5000,
-  shutdownHandlerTimeout: 5000,
+  gracefulShutdownTimeout: 60_000,
+  port: 9_000,
+  shutdownDelay: 5_000,
+  shutdownHandlerTimeout: 5_000,
   signals: [
     'SIGTERM',
     'SIGHUP',
@@ -142,7 +142,7 @@ export default (userConfiguration?: ConfigurationInputType): LightshipType => {
     log.info('received request to shutdown the service');
 
     if (configuration.shutdownDelay) {
-      log.debug('delaying shutdown handler by %d seconds', configuration.shutdownDelay / 1000);
+      log.debug('delaying shutdown handler by %d seconds', configuration.shutdownDelay / 1_000);
 
       await delay(configuration.shutdownDelay);
     }
@@ -225,7 +225,7 @@ export default (userConfiguration?: ConfigurationInputType): LightshipType => {
       log.warn('process did not exit on its own; investigate what is keeping the event loop active');
 
       configuration.terminate();
-    }, 1000)
+    }, 1_000)
 
       // $FlowFixMe
       .unref();

@@ -1,9 +1,9 @@
 // @flow
 
 import test from 'ava';
-import sinon from 'sinon';
-import delay from 'delay';
 import axios from 'axios';
+import delay from 'delay';
+import sinon from 'sinon';
 import createLightship from '../../../src/factories/createLightship';
 import {
   SERVER_IS_NOT_READY,
@@ -23,7 +23,7 @@ type ServiceStateType = {|
   +ready: ProbeStateType,
 |};
 
-const getServiceState = async (port: number = 9000): Promise<ServiceStateType> => {
+const getServiceState = async (port: number = 9_000): Promise<ServiceStateType> => {
   const health = await axios('http://127.0.0.1:' + port + '/health', {
     validateStatus: () => {
       return true;
@@ -322,7 +322,7 @@ test('delays shutdown handlers', async (t) => {
   const terminate = sinon.stub();
 
   const lightship = createLightship({
-    shutdownDelay: 1000,
+    shutdownDelay: 1_000,
     terminate,
   });
 
@@ -342,7 +342,7 @@ test('delays shutdown handlers', async (t) => {
 
   t.is(shutdownHandler.callCount, 0);
 
-  await delay(1000);
+  await delay(1_000);
 
   t.is(shutdownHandler.callCount, 1);
 

@@ -1,3 +1,5 @@
 // @flow
 
-export {default as isKubernetes} from './isKubernetes';
+export {
+  default as isKubernetes,
+} from './isKubernetes';
