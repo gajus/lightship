@@ -66,4 +66,5 @@ export type LightshipType = {|
   +shutdown: () => Promise<void>,
   +signalNotReady: () => void,
   +signalReady: () => void,
+  +whenFirstReady: () => Promise<void>,
 |};
