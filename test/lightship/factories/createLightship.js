@@ -130,7 +130,7 @@ test('calling `signalReady` resolves `whenFirstReady`', async (t) => {
 
   await lightship.whenFirstReady();
 
-  t.true(Date.now() - startTime > 100);
+  t.true(Date.now() - startTime > 90);
 });
 
 test('calling `signalNotReady` changes server state to SERVER_IS_NOT_READY', async (t) => {
