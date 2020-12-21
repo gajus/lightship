@@ -7,7 +7,6 @@ node_modules
 !.editorconfig
 !.eslintignore
 !.eslintrc
-!.flowconfig
 !.gitignore
 !.npmignore
 !.README

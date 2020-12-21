@@ -104,9 +104,9 @@ import {
   createLightship
 } from 'lightship';
 
-const configuration: ConfigurationInputType = {};
+const configuration: ConfigurationInput = {};
 
-const lightship: LightshipType = createLightship(configuration);
+const lightship: Lightship = createLightship(configuration);
 
 ```
 
@@ -116,7 +116,7 @@ The following types describe the configuration shape and the resulting Lightship
 /**
  * A teardown function called when shutdown is initialized.
  */
-type ShutdownHandlerType = () => Promise<void> | void;
+type ShutdownHandler = () => Promise<void> | void;
 
 /**
  * @property detectKubernetes Run Lightship in local mode when Kubernetes is not detected. Default: true.
@@ -127,7 +127,7 @@ type ShutdownHandlerType = () => Promise<void> | void;
  * @property signals An a array of [signal events]{@link https://nodejs.org/api/process.html#process_signal_events}. Default: [SIGTERM].
  * @property terminate Method used to terminate Node.js process. Default: `() => { process.exit(1) };`.
  */
-export type ConfigurationInputType = {|
+export type ConfigurationInput = {|
   +detectKubernetes?: boolean,
   +gracefulShutdownTimeout?: number,
   +port?: number,
@@ -145,12 +145,12 @@ export type ConfigurationInputType = {|
  * @property signalReady Changes server state to SERVER_IS_READY.
  * @property whenFirstReady Resolves the first time the service goes from `SERVER_IS_NOT_READY` to `SERVER_IS_READY` state.
  */
-type LightshipType = {|
-  +createBeacon: (context?: BeaconContextType) => BeaconControllerType,
+type Lightship = {|
+  +createBeacon: (context?: BeaconContext) => BeaconController,
   +isServerReady: () => boolean,
   +isServerShuttingDown: () => boolean,
   +queueBlockingTask: (blockingTask: Promise<any>) => void,
-  +registerShutdownHandler: (shutdownHandler: ShutdownHandlerType) => void,
+  +registerShutdownHandler: (shutdownHandler: ShutdownHandler) => void,
   +server: http$Server,
   +shutdown: () => Promise<void>,
   +signalNotReady: () => void,

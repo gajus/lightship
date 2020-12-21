@@ -1,30 +1,40 @@
-// @flow
-
+import {
+  AddressInfo,
+} from 'net';
 import test from 'ava';
 import axios from 'axios';
 import delay from 'delay';
-import Deferred from 'promise-deferred';
-import sinon from 'sinon';
+import {
+  stub, spy,
+} from 'sinon';
 import createLightship from '../../../src/factories/createLightship';
 import {
-  SERVER_IS_NOT_READY,
-  SERVER_IS_NOT_SHUTTING_DOWN,
-  SERVER_IS_READY,
-  SERVER_IS_SHUTTING_DOWN,
+  SERVER_IS_NOT_READY, SERVER_IS_NOT_SHUTTING_DOWN, SERVER_IS_READY, SERVER_IS_SHUTTING_DOWN,
 } from '../../../src/states';
+import {
+  Lightship,
+} from '../../../src/types';
 
-type ProbeStateType = {|
-  +message: string,
-  +status: number,
-|};
+type ProbeState = {
+  readonly message: string;
+  readonly status: number;
+};
 
-type ServiceStateType = {|
-  +health: ProbeStateType,
-  +live: ProbeStateType,
-  +ready: ProbeStateType,
-|};
+type ServiceState = {
+  readonly health: ProbeState;
+  readonly live: ProbeState;
+  readonly ready: ProbeState;
+};
 
-const getServiceState = async (port: number = 9_000): Promise<ServiceStateType> => {
+const getLightshipPort = (lightship: Lightship) => {
+  const address = lightship.server.address() as AddressInfo;
+
+  return address.port;
+};
+
+const getServiceState = async (lightship: Lightship): Promise<ServiceState> => {
+  const port = getLightshipPort(lightship);
+
   const health = await axios('http://127.0.0.1:' + port + '/health', {
     validateStatus: () => {
       return true;
@@ -60,7 +70,7 @@ const getServiceState = async (port: number = 9_000): Promise<ServiceStateType> 
 };
 
 test('server starts in SERVER_IS_NOT_READY state', async (t) => {
-  const terminate = sinon.stub();
+  const terminate = stub();
 
   const lightship = createLightship({
     shutdownDelay: 0,
@@ -70,7 +80,7 @@ test('server starts in SERVER_IS_NOT_READY state', async (t) => {
   t.is(lightship.isServerReady(), false);
   t.is(lightship.isServerShuttingDown(), false);
 
-  const serviceState = await getServiceState(lightship.server.address().port);
+  const serviceState = await getServiceState(lightship);
 
   t.is(serviceState.health.status, 500);
   t.is(serviceState.health.message, SERVER_IS_NOT_READY);
@@ -87,7 +97,7 @@ test('server starts in SERVER_IS_NOT_READY state', async (t) => {
 });
 
 test('calling `signalReady` changes server state to SERVER_IS_READY', async (t) => {
-  const terminate = sinon.stub();
+  const terminate = stub();
 
   const lightship = createLightship({
     shutdownDelay: 0,
@@ -99,7 +109,7 @@ test('calling `signalReady` changes server state to SERVER_IS_READY', async (t) 
   t.is(lightship.isServerReady(), true);
   t.is(lightship.isServerShuttingDown(), false);
 
-  const serviceState = await getServiceState(lightship.server.address().port);
+  const serviceState = await getServiceState(lightship);
 
   t.is(serviceState.health.status, 200);
   t.is(serviceState.health.message, SERVER_IS_READY);
@@ -116,7 +126,7 @@ test('calling `signalReady` changes server state to SERVER_IS_READY', async (t) 
 });
 
 test('calling `signalReady` resolves `whenFirstReady`', async (t) => {
-  const terminate = sinon.stub();
+  const terminate = stub();
 
   const lightship = createLightship({
     shutdownDelay: 0,
@@ -135,22 +145,25 @@ test('calling `signalReady` resolves `whenFirstReady`', async (t) => {
 });
 
 test('`queueBlockingTask` forces service into SERVER_IS_NOT_READY until blocking tasks are resolved', async (t) => {
-  const terminate = sinon.stub();
+  const terminate = stub();
 
   const lightship = createLightship({
     shutdownDelay: 0,
     terminate,
   });
 
-  const blockingTask = new Deferred();
+  let resolveBlockingTask: () => void;
+  const blockingTask = new Promise<void>((resolve) => {
+    resolveBlockingTask = resolve;
+  });
 
-  lightship.queueBlockingTask(blockingTask.promise);
+  lightship.queueBlockingTask(blockingTask);
 
   lightship.signalReady();
 
   t.is(lightship.isServerReady(), false);
 
-  blockingTask.resolve();
+  resolveBlockingTask!();
 
   await delay(0);
 
@@ -158,7 +171,7 @@ test('`queueBlockingTask` forces service into SERVER_IS_NOT_READY until blocking
 });
 
 test('`whenFirstReady` resolves when all blocking tasks are resolved', async (t) => {
-  const terminate = sinon.stub();
+  const terminate = stub();
 
   const lightship = createLightship({
     shutdownDelay: 0,
@@ -166,7 +179,7 @@ test('`whenFirstReady` resolves when all blocking tasks are resolved', async (t)
   });
 
   lightship.queueBlockingTask(
-    new Promise((resolve) => {
+    new Promise<void>((resolve) => {
       setTimeout(() => {
         resolve();
       }, 200);
@@ -185,7 +198,7 @@ test('`whenFirstReady` resolves when all blocking tasks are resolved', async (t)
 });
 
 test('calling `signalNotReady` changes server state to SERVER_IS_NOT_READY', async (t) => {
-  const terminate = sinon.stub();
+  const terminate = stub();
 
   const lightship = createLightship({
     shutdownDelay: 0,
@@ -198,7 +211,7 @@ test('calling `signalNotReady` changes server state to SERVER_IS_NOT_READY', asy
   t.is(lightship.isServerReady(), false);
   t.is(lightship.isServerShuttingDown(), false);
 
-  const serviceState = await getServiceState(lightship.server.address().port);
+  const serviceState = await getServiceState(lightship);
 
   t.is(serviceState.health.status, 500);
   t.is(serviceState.health.message, SERVER_IS_NOT_READY);
@@ -215,14 +228,14 @@ test('calling `signalNotReady` changes server state to SERVER_IS_NOT_READY', asy
 });
 
 test('calling `shutdown` changes server state to SERVER_IS_SHUTTING_DOWN', async (t) => {
-  const terminate = sinon.stub();
+  const terminate = stub();
 
   const lightship = createLightship({
     shutdownDelay: 0,
     terminate,
   });
 
-  let shutdown;
+  let shutdown: (() => void) | undefined;
 
   lightship.registerShutdownHandler(() => {
     return new Promise((resolve) => {
@@ -235,7 +248,7 @@ test('calling `shutdown` changes server state to SERVER_IS_SHUTTING_DOWN', async
   t.is(lightship.isServerReady(), false);
   t.is(lightship.isServerShuttingDown(), true);
 
-  const serviceState = await getServiceState(lightship.server.address().port);
+  const serviceState = await getServiceState(lightship);
 
   t.is(serviceState.health.status, 500);
   t.is(serviceState.health.message, SERVER_IS_SHUTTING_DOWN);
@@ -256,39 +269,37 @@ test('calling `shutdown` changes server state to SERVER_IS_SHUTTING_DOWN', async
 });
 
 test('invoking `shutdown` using a signal causes SERVER_IS_READY', (t) => {
-  const terminate = sinon.stub();
+  const terminate = stub();
 
   const lightship = createLightship({
     detectKubernetes: false,
     shutdownDelay: 0,
-    signals: [
-      'LIGHTSHIP_TEST',
-    ],
+    signals: ['LIGHTSHIP_TEST'],
     terminate,
   });
 
-  process.emit('LIGHTSHIP_TEST');
+  process.emit('LIGHTSHIP_TEST' as any);
 
   t.is(lightship.isServerReady(), false);
   t.is(lightship.isServerShuttingDown(), true);
 });
 
 test('error thrown from within a shutdown handler does not interrupt the shutdown sequence', async (t) => {
-  const terminate = sinon.stub();
+  const terminate = stub();
 
   const lightship = createLightship({
     shutdownDelay: 0,
     terminate,
   });
 
-  const shutdownHandler0 = sinon.spy(async () => {
+  const shutdownHandler0 = spy(async () => {
     throw new Error('test');
   });
 
-  let shutdown;
+  let shutdown: (() => void) | undefined;
 
-  const shutdownHandler1 = sinon.spy(() => {
-    return new Promise((resolve) => {
+  const shutdownHandler1 = spy(() => {
+    return new Promise<void>((resolve) => {
       shutdown = resolve;
     });
   });
@@ -313,17 +324,17 @@ test('error thrown from within a shutdown handler does not interrupt the shutdow
 });
 
 test('calling `shutdown` multiple times results in shutdown handlers called once', async (t) => {
-  const terminate = sinon.stub();
+  const terminate = stub();
 
   const lightship = createLightship({
     shutdownDelay: 0,
     terminate,
   });
 
-  let shutdown;
+  let shutdown: (() => void) | undefined;
 
-  const shutdownHandler = sinon.spy(() => {
-    return new Promise((resolve) => {
+  const shutdownHandler = spy(() => {
+    return new Promise<void>((resolve) => {
       shutdown = resolve;
     });
   });
@@ -350,17 +361,17 @@ test('calling `shutdown` multiple times results in shutdown handlers called once
 });
 
 test('presence of live beacons suspend the shutdown routine', async (t) => {
-  const terminate = sinon.stub();
+  const terminate = stub();
 
   const lightship = createLightship({
     shutdownDelay: 0,
     terminate,
   });
 
-  let shutdown;
+  let shutdown: (() => void) | undefined;
 
-  const shutdownHandler = sinon.spy(() => {
-    return new Promise((resolve) => {
+  const shutdownHandler = spy(() => {
+    return new Promise<void>((resolve) => {
       shutdown = resolve;
     });
   });
@@ -389,17 +400,17 @@ test('presence of live beacons suspend the shutdown routine', async (t) => {
 });
 
 test('delays shutdown handlers', async (t) => {
-  const terminate = sinon.stub();
+  const terminate = stub();
 
   const lightship = createLightship({
     shutdownDelay: 1_000,
     terminate,
   });
 
-  let shutdown;
+  let shutdown: (() => void) | undefined;
 
-  const shutdownHandler = sinon.spy(() => {
-    return new Promise((resolve) => {
+  const shutdownHandler = spy(() => {
+    return new Promise<void>((resolve) => {
       shutdown = resolve;
     });
   });

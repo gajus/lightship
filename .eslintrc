@@ -1,7 +1,19 @@
 {
+  "parser": "@typescript-eslint/parser",
+  "plugins": [
+    "@typescript-eslint"
+  ],
   "extends": [
     "canonical",
-    "canonical/flowtype"
+    "eslint:recommended",
+    "plugin:@typescript-eslint/recommended"
   ],
+  "settings": {
+    "import/resolver": {
+      "node": {
+        "extensions": [".js", ".ts", ".d.ts"]
+      }
+    }
+  },
   "root": true
 }

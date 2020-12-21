@@ -6,9 +6,6 @@
       ]
     }
   },
-  "plugins": [
-    "@babel/transform-flow-strip-types"
-  ],
   "presets": [
     [
       "@babel/env",
@@ -17,6 +14,7 @@
           "node": "10"
         }
       }
-    ]
+    ],
+    "@babel/preset-typescript"
   ]
 }
