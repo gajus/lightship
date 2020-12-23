@@ -1,13 +1,15 @@
-// @flow
-
 // eslint-disable-next-line fp/no-events
-import EventEmitter from 'events';
+import {
+  EventEmitter,
+} from 'events';
+import {
+  AddressInfo,
+} from 'net';
 import delay from 'delay';
 import express from 'express';
 import {
   createHttpTerminator,
 } from 'http-terminator';
-import Deferred from 'promise-deferred';
 import {
   serializeError,
 } from 'serialize-error';
@@ -19,10 +21,13 @@ import {
   SERVER_IS_SHUTTING_DOWN,
 } from '../states';
 import type {
-  ConfigurationInputType,
-  ConfigurationType,
-  LightshipType,
-  ShutdownHandlerType,
+  BeaconContext,
+  BlockingTask,
+  ConfigurationInput,
+  Configuration,
+  Lightship,
+  ShutdownHandler,
+  BeaconController,
 } from '../types';
 import {
   isKubernetes,
@@ -32,7 +37,7 @@ const log = Logger.child({
   namespace: 'factories/createLightship',
 });
 
-const defaultConfiguration = {
+const defaultConfiguration: Configuration = {
   detectKubernetes: true,
   gracefulShutdownTimeout: 60_000,
   port: 9_000,
@@ -49,23 +54,30 @@ const defaultConfiguration = {
   },
 };
 
-export default (userConfiguration?: ConfigurationInputType): LightshipType => {
-  let blockingTasks = [];
+interface Beacon {
+  context: BeaconContext
+}
 
-  const deferredFirstReady = new Deferred();
+export default (userConfiguration?: ConfigurationInput): Lightship => {
+  let blockingTasks: BlockingTask[] = [];
+
+  let resolveFirstReady: () => void;
+  const deferredFirstReady = new Promise<void>((resolve) => {
+    resolveFirstReady = resolve;
+  });
 
   // eslint-disable-next-line promise/always-return, promise/catch-or-return
-  deferredFirstReady.promise.then(() => {
+  deferredFirstReady.then(() => {
     log.info('service became available for the first time');
   });
 
   const eventEmitter = new EventEmitter();
 
-  const beacons = [];
+  const beacons: Beacon[] = [];
 
-  const shutdownHandlers: Array<ShutdownHandlerType> = [];
+  const shutdownHandlers: Array<ShutdownHandler> = [];
 
-  const configuration: ConfigurationType = {
+  const configuration: Configuration = {
     ...defaultConfiguration,
     ...userConfiguration,
   };
@@ -92,14 +104,15 @@ export default (userConfiguration?: ConfigurationInputType): LightshipType => {
   const modeIsLocal = configuration.detectKubernetes === true && isKubernetes() === false;
 
   const server = app.listen(modeIsLocal ? undefined : configuration.port, () => {
-    log.info('Lightship HTTP service is running on port %s', server.address().port);
+    const address = server.address() as AddressInfo;
+    log.info('Lightship HTTP service is running on port %s', address.port);
   });
 
   const httpTerminator = createHttpTerminator({
     server,
   });
 
-  app.get('/health', (request, response) => {
+  app.get('/health', (_request, response) => {
     if (serverIsShuttingDown) {
       response.status(500).send(SERVER_IS_SHUTTING_DOWN);
     } else if (serverIsReady) {
@@ -109,7 +122,7 @@ export default (userConfiguration?: ConfigurationInputType): LightshipType => {
     }
   });
 
-  app.get('/live', (request, response) => {
+  app.get('/live', (_request, response) => {
     if (serverIsShuttingDown) {
       response.status(500).send(SERVER_IS_SHUTTING_DOWN);
     } else {
@@ -117,7 +130,7 @@ export default (userConfiguration?: ConfigurationInputType): LightshipType => {
     }
   });
 
-  app.get('/ready', (request, response) => {
+  app.get('/ready', (_request, response) => {
     if (serverIsReady) {
       response.send(SERVER_IS_READY);
     } else {
@@ -151,7 +164,7 @@ export default (userConfiguration?: ConfigurationInputType): LightshipType => {
     serverIsReady = true;
 
     if (blockingTasks.length === 0) {
-      deferredFirstReady.resolve();
+      resolveFirstReady();
     }
   };
 
@@ -184,12 +197,11 @@ export default (userConfiguration?: ConfigurationInputType): LightshipType => {
         configuration.terminate();
       }, configuration.gracefulShutdownTimeout);
 
-      // $FlowFixMe
       gracefulShutdownTimeoutId.unref();
     }
 
     if (beacons.length) {
-      await new Promise((resolve) => {
+      await new Promise<void>((resolve) => {
         const check = () => {
           log.debug('checking if there are live beacons');
 
@@ -225,7 +237,6 @@ export default (userConfiguration?: ConfigurationInputType): LightshipType => {
         configuration.terminate();
       }, configuration.shutdownHandlerTimeout);
 
-      // $FlowFixMe
       shutdownHandlerTimeoutId.unref();
     }
 
@@ -255,7 +266,6 @@ export default (userConfiguration?: ConfigurationInputType): LightshipType => {
       configuration.terminate();
     }, 1_000)
 
-      // $FlowFixMe
       .unref();
   };
 
@@ -273,7 +283,7 @@ export default (userConfiguration?: ConfigurationInputType): LightshipType => {
     }
   }
 
-  const createBeacon = (context) => {
+  const createBeacon = (context?: BeaconContext): BeaconController => {
     const beacon = {
       context: context || {},
     };
@@ -301,7 +311,7 @@ export default (userConfiguration?: ConfigurationInputType): LightshipType => {
     isServerShuttingDown: () => {
       return serverIsShuttingDown;
     },
-    queueBlockingTask: (blockingTask) => {
+    queueBlockingTask: (blockingTask: BlockingTask) => {
       blockingTasks.push(blockingTask);
 
       // eslint-disable-next-line promise/catch-or-return
@@ -311,7 +321,7 @@ export default (userConfiguration?: ConfigurationInputType): LightshipType => {
         });
 
         if (blockingTasks.length === 0 && serverIsReady === true) {
-          deferredFirstReady.resolve();
+          resolveFirstReady();
         }
 
         return result;
@@ -327,7 +337,7 @@ export default (userConfiguration?: ConfigurationInputType): LightshipType => {
     signalNotReady,
     signalReady,
     whenFirstReady: () => {
-      return deferredFirstReady.promise;
+      return deferredFirstReady;
     },
   };
 };

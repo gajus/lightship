@@ -1,13 +1,11 @@
-// @flow
-
-import type {
+import {
   Server,
 } from 'http';
 
 /**
  * A teardown function called when shutdown is initialized.
  */
-export type ShutdownHandlerType = () => Promise<void> | void;
+export type ShutdownHandler = () => Promise<void> | void;
 
 /**
  * @property detectKubernetes Run Lightship in local mode when Kubernetes is not detected. Default: true.
@@ -18,38 +16,37 @@ export type ShutdownHandlerType = () => Promise<void> | void;
  * @property signals An a array of [signal events]{@link https://nodejs.org/api/process.html#process_signal_events}. Default: [SIGTERM].
  * @property terminate Method used to terminate Node.js process. Default: `() => { process.exit(1) };`.
  */
-export type ConfigurationInputType = {|
-  +detectKubernetes?: boolean,
-  +gracefulShutdownTimeout?: number,
-  +port?: number,
-  +shutdownDelay?: number,
-  +shutdownHandlerTimeout?: number,
-  +signals?: $ReadOnlyArray<string>,
-  +terminate?: () => void,
-|};
+export type ConfigurationInput = {
+  readonly detectKubernetes?: boolean;
+  readonly gracefulShutdownTimeout?: number;
+  readonly port?: number;
+  readonly shutdownDelay?: number;
+  readonly shutdownHandlerTimeout?: number;
+  readonly signals?: ReadonlyArray<string>;
+  readonly terminate?: () => void;
+};
 
-export type ConfigurationType = {|
-  +detectKubernetes: boolean,
-  +gracefulShutdownTimeout: number,
-  +port: number,
-  +shutdownDelay: number,
-  +shutdownHandlerTimeout: number,
-  +signals: $ReadOnlyArray<string>,
-  +terminate: () => void,
-|};
+export type Configuration = {
+  readonly detectKubernetes: boolean;
+  readonly gracefulShutdownTimeout: number;
+  readonly port: number;
+  readonly shutdownDelay: number;
+  readonly shutdownHandlerTimeout: number;
+  readonly signals: ReadonlyArray<string>;
+  readonly terminate: () => void;
+};
 
-// eslint-disable-next-line flowtype/no-weak-types
-export type BeaconContextType = Object;
+export type BeaconContext = {
+  [key: string]: unknown;
+};
 
-export type BeaconControllerType = {|
-  +die: () => Promise<void>,
-|};
+export type BeaconController = {
+  readonly die: () => Promise<void>;
+};
 
-export opaque type StateType =
-  'SERVER_IS_NOT_READY' |
-  'SERVER_IS_NOT_SHUTTING_DOWN' |
-  'SERVER_IS_READY' |
-  'SERVER_IS_SHUTTING_DOWN';
+export type BlockingTask = Promise<unknown>
+
+export type State = 'SERVER_IS_NOT_READY' | 'SERVER_IS_NOT_SHUTTING_DOWN' | 'SERVER_IS_READY' | 'SERVER_IS_SHUTTING_DOWN';
 
 /**
  * @property registerShutdownHandler Registers teardown functions that are called when shutdown is initialized. All registered shutdown handlers are executed in the order they have been registered. After all shutdown handlers have been executed, Lightship asks `process.exit()` to terminate the process synchronously.
@@ -58,17 +55,15 @@ export opaque type StateType =
  * @property signalReady Changes server state to SERVER_IS_READY.
  * @property queueBlockingTask Forces service state to SERVER_IS_NOT_READY until all promises are resolved.
  */
-export type LightshipType = {|
-  +createBeacon: (context?: BeaconContextType) => BeaconControllerType,
-  +isServerReady: () => boolean,
-  +isServerShuttingDown: () => boolean,
-
-  // eslint-disable-next-line flowtype/no-weak-types
-  +queueBlockingTask: (blockingTask: Promise<any>) => void,
-  +registerShutdownHandler: (shutdownHandler: ShutdownHandlerType) => void,
-  +server: Server,
-  +shutdown: () => Promise<void>,
-  +signalNotReady: () => void,
-  +signalReady: () => void,
-  +whenFirstReady: () => Promise<void>,
-|};
+export type Lightship = {
+  readonly createBeacon: (context?: BeaconContext) => BeaconController;
+  readonly isServerReady: () => boolean;
+  readonly isServerShuttingDown: () => boolean;
+  readonly queueBlockingTask: (blockingTask: BlockingTask) => void;
+  readonly registerShutdownHandler: (shutdownHandler: ShutdownHandler) => void;
+  readonly server: Server;
+  readonly shutdown: () => Promise<void>;
+  readonly signalNotReady: () => void;
+  readonly signalReady: () => void;
+  readonly whenFirstReady: () => Promise<void>
+};

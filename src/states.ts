@@ -1,11 +1,8 @@
-// @flow
-
-import type {
-  StateType,
+import {
+  State,
 } from './types';
 
-const createState = (subject: *): StateType => {
-  // $FlowFixMe
+const createState = <TState extends State>(subject: TState): TState => {
   return subject;
 };
 
