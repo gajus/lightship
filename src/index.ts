@@ -1,4 +1,7 @@
 export {
   default as createLightship,
 } from './factories/createLightship';
-export * from './types';
+export type {
+  Lightship,
+  ConfigurationInput,
+} from './types';

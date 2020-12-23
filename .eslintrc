@@ -5,15 +5,7 @@
   ],
   "extends": [
     "canonical",
-    "eslint:recommended",
-    "plugin:@typescript-eslint/recommended"
+    "canonical/typescript"
   ],
-  "settings": {
-    "import/resolver": {
-      "node": {
-        "extensions": [".js", ".ts", ".d.ts"]
-      }
-    }
-  },
   "root": true
 }

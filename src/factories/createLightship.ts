@@ -37,7 +37,7 @@ const log = Logger.child({
   namespace: 'factories/createLightship',
 });
 
-const defaultConfiguration = {
+const defaultConfiguration: Configuration = {
   detectKubernetes: true,
   gracefulShutdownTimeout: 60_000,
   port: 9_000,
@@ -112,7 +112,7 @@ export default (userConfiguration?: ConfigurationInput): Lightship => {
     server,
   });
 
-  app.get('/health', (request, response) => {
+  app.get('/health', (_request, response) => {
     if (serverIsShuttingDown) {
       response.status(500).send(SERVER_IS_SHUTTING_DOWN);
     } else if (serverIsReady) {
@@ -122,7 +122,7 @@ export default (userConfiguration?: ConfigurationInput): Lightship => {
     }
   });
 
-  app.get('/live', (request, response) => {
+  app.get('/live', (_request, response) => {
     if (serverIsShuttingDown) {
       response.status(500).send(SERVER_IS_SHUTTING_DOWN);
     } else {
@@ -130,7 +130,7 @@ export default (userConfiguration?: ConfigurationInput): Lightship => {
     }
   });
 
-  app.get('/ready', (request, response) => {
+  app.get('/ready', (_request, response) => {
     if (serverIsReady) {
       response.send(SERVER_IS_READY);
     } else {
