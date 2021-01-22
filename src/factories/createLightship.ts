@@ -131,7 +131,7 @@ export default (userConfiguration?: ConfigurationInput): Lightship => {
   });
 
   app.get('/ready', (_request, response) => {
-    if (serverIsReady) {
+    if (isServerReady()) {
       response.send(SERVER_IS_READY);
     } else {
       response.status(500).send(SERVER_IS_NOT_READY);
