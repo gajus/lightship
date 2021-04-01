@@ -21,6 +21,7 @@
     ]
   },
   "dependencies": {
+    "@sentry/node": "^6.2.5",
     "delay": "^5.0.0",
     "express": "^4.17.1",
     "http-terminator": "^3.0.0",

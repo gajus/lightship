@@ -5,6 +5,9 @@ import {
 import type {
   AddressInfo,
 } from 'net';
+import {
+  Handlers as SentryHandlers,
+} from '@sentry/node';
 import delay from 'delay';
 import express from 'express';
 import {
@@ -112,6 +115,8 @@ export default (userConfiguration?: ConfigurationInput): Lightship => {
     server,
   });
 
+  app.use(SentryHandlers.requestHandler());
+
   app.get('/health', (incomingMessage, serverResponse) => {
     if (serverIsShuttingDown) {
       serverResponse
@@ -148,6 +153,8 @@ export default (userConfiguration?: ConfigurationInput): Lightship => {
         .send(SERVER_IS_NOT_READY);
     }
   });
+
+  app.use(SentryHandlers.errorHandler());
 
   const signalNotReady = () => {
     if (serverIsReady === false) {
