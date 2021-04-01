@@ -112,29 +112,40 @@ export default (userConfiguration?: ConfigurationInput): Lightship => {
     server,
   });
 
-  app.get('/health', (_request, response) => {
+  app.get('/health', (incomingMessage, serverResponse) => {
     if (serverIsShuttingDown) {
-      response.status(500).send(SERVER_IS_SHUTTING_DOWN);
+      serverResponse
+        .status(500)
+        .send(SERVER_IS_SHUTTING_DOWN);
     } else if (serverIsReady) {
-      response.send(SERVER_IS_READY);
+      serverResponse
+        .send(SERVER_IS_READY);
     } else {
-      response.status(500).send(SERVER_IS_NOT_READY);
+      serverResponse
+        .status(500)
+        .send(SERVER_IS_NOT_READY);
     }
   });
 
-  app.get('/live', (_request, response) => {
+  app.get('/live', (incomingMessage, serverResponse) => {
     if (serverIsShuttingDown) {
-      response.status(500).send(SERVER_IS_SHUTTING_DOWN);
+      serverResponse
+        .status(500)
+        .send(SERVER_IS_SHUTTING_DOWN);
     } else {
-      response.send(SERVER_IS_NOT_SHUTTING_DOWN);
+      serverResponse
+        .send(SERVER_IS_NOT_SHUTTING_DOWN);
     }
   });
 
-  app.get('/ready', (_request, response) => {
+  app.get('/ready', (incomingMessage, serverResponse) => {
     if (isServerReady()) {
-      response.send(SERVER_IS_READY);
+      serverResponse
+        .send(SERVER_IS_READY);
     } else {
-      response.status(500).send(SERVER_IS_NOT_READY);
+      serverResponse
+        .status(500)
+        .send(SERVER_IS_NOT_READY);
     }
   });
 
