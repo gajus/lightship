@@ -1,4 +1,4 @@
-import {
+import type {
   Server,
 } from 'http';
 
@@ -17,34 +17,34 @@ export type ShutdownHandler = () => Promise<void> | void;
  * @property terminate Method used to terminate Node.js process. Default: `() => { process.exit(1) };`.
  */
 export type ConfigurationInput = {
-  readonly detectKubernetes?: boolean;
-  readonly gracefulShutdownTimeout?: number;
-  readonly port?: number;
-  readonly shutdownDelay?: number;
-  readonly shutdownHandlerTimeout?: number;
-  readonly signals?: ReadonlyArray<string>;
-  readonly terminate?: () => void;
+  readonly detectKubernetes?: boolean,
+  readonly gracefulShutdownTimeout?: number,
+  readonly port?: number,
+  readonly shutdownDelay?: number,
+  readonly shutdownHandlerTimeout?: number,
+  readonly signals?: readonly string[],
+  readonly terminate?: () => void,
 };
 
 export type Configuration = {
-  readonly detectKubernetes: boolean;
-  readonly gracefulShutdownTimeout: number;
-  readonly port: number;
-  readonly shutdownDelay: number;
-  readonly shutdownHandlerTimeout: number;
-  readonly signals: ReadonlyArray<string>;
-  readonly terminate: () => void;
+  readonly detectKubernetes: boolean,
+  readonly gracefulShutdownTimeout: number,
+  readonly port: number,
+  readonly shutdownDelay: number,
+  readonly shutdownHandlerTimeout: number,
+  readonly signals: readonly string[],
+  readonly terminate: () => void,
 };
 
 export type BeaconContext = {
-  [key: string]: unknown;
+  [key: string]: unknown,
 };
 
 export type BeaconController = {
-  readonly die: () => Promise<void>;
+  readonly die: () => Promise<void>,
 };
 
-export type BlockingTask = Promise<unknown>
+export type BlockingTask = Promise<unknown>;
 
 export type State = 'SERVER_IS_NOT_READY' | 'SERVER_IS_NOT_SHUTTING_DOWN' | 'SERVER_IS_READY' | 'SERVER_IS_SHUTTING_DOWN';
 
@@ -56,14 +56,14 @@ export type State = 'SERVER_IS_NOT_READY' | 'SERVER_IS_NOT_SHUTTING_DOWN' | 'SER
  * @property queueBlockingTask Forces service state to SERVER_IS_NOT_READY until all promises are resolved.
  */
 export type Lightship = {
-  readonly createBeacon: (context?: BeaconContext) => BeaconController;
-  readonly isServerReady: () => boolean;
-  readonly isServerShuttingDown: () => boolean;
-  readonly queueBlockingTask: (blockingTask: BlockingTask) => void;
-  readonly registerShutdownHandler: (shutdownHandler: ShutdownHandler) => void;
-  readonly server: Server;
-  readonly shutdown: () => Promise<void>;
-  readonly signalNotReady: () => void;
-  readonly signalReady: () => void;
-  readonly whenFirstReady: () => Promise<void>
+  readonly createBeacon: (context?: BeaconContext) => BeaconController,
+  readonly isServerReady: () => boolean,
+  readonly isServerShuttingDown: () => boolean,
+  readonly queueBlockingTask: (blockingTask: BlockingTask) => void,
+  readonly registerShutdownHandler: (shutdownHandler: ShutdownHandler) => void,
+  readonly server: Server,
+  readonly shutdown: () => Promise<void>,
+  readonly signalNotReady: () => void,
+  readonly signalReady: () => void,
+  readonly whenFirstReady: () => Promise<void>,
 };

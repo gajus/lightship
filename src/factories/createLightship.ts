@@ -2,7 +2,7 @@
 import {
   EventEmitter,
 } from 'events';
-import {
+import type {
   AddressInfo,
 } from 'net';
 import delay from 'delay';
@@ -49,14 +49,14 @@ const defaultConfiguration: Configuration = {
     'SIGINT',
   ],
   terminate: () => {
-    // eslint-disable-next-line no-process-exit
+    // eslint-disable-next-line node/no-process-exit
     process.exit(1);
   },
 };
 
-interface Beacon {
-  context: BeaconContext
-}
+type Beacon = {
+  context: BeaconContext,
+};
 
 export default (userConfiguration?: ConfigurationInput): Lightship => {
   let blockingTasks: BlockingTask[] = [];
@@ -75,7 +75,7 @@ export default (userConfiguration?: ConfigurationInput): Lightship => {
 
   const beacons: Beacon[] = [];
 
-  const shutdownHandlers: Array<ShutdownHandler> = [];
+  const shutdownHandlers: ShutdownHandler[] = [];
 
   const configuration: Configuration = {
     ...defaultConfiguration,
@@ -190,7 +190,7 @@ export default (userConfiguration?: ConfigurationInput): Lightship => {
 
     let gracefulShutdownTimeoutId;
 
-    if (configuration.gracefulShutdownTimeout !== Infinity) {
+    if (configuration.gracefulShutdownTimeout !== Number.POSITIVE_INFINITY) {
       gracefulShutdownTimeoutId = setTimeout(() => {
         log.warn('graceful shutdown timeout; forcing termination');
 
@@ -230,7 +230,7 @@ export default (userConfiguration?: ConfigurationInput): Lightship => {
 
     let shutdownHandlerTimeoutId;
 
-    if (configuration.shutdownHandlerTimeout !== Infinity) {
+    if (configuration.shutdownHandlerTimeout !== Number.POSITIVE_INFINITY) {
       shutdownHandlerTimeoutId = setTimeout(() => {
         log.warn('shutdown handler timeout; forcing termination');
 
@@ -285,7 +285,7 @@ export default (userConfiguration?: ConfigurationInput): Lightship => {
 
   const createBeacon = (context?: BeaconContext): BeaconController => {
     const beacon = {
-      context: context || {},
+      context: context ?? {},
     };
 
     beacons.push(beacon);

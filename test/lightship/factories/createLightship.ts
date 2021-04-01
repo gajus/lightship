@@ -1,4 +1,4 @@
-import {
+import type {
   AddressInfo,
 } from 'net';
 import test from 'ava';
@@ -11,19 +11,19 @@ import createLightship from '../../../src/factories/createLightship';
 import {
   SERVER_IS_NOT_READY, SERVER_IS_NOT_SHUTTING_DOWN, SERVER_IS_READY, SERVER_IS_SHUTTING_DOWN,
 } from '../../../src/states';
-import {
+import type {
   Lightship,
 } from '../../../src/types';
 
 type ProbeState = {
-  readonly message: string;
-  readonly status: number;
+  readonly message: string,
+  readonly status: number,
 };
 
 type ServiceState = {
-  readonly health: ProbeState;
-  readonly live: ProbeState;
-  readonly ready: ProbeState;
+  readonly health: ProbeState,
+  readonly live: ProbeState,
+  readonly ready: ProbeState,
 };
 
 const getLightshipPort = (lightship: Lightship) => {
@@ -263,7 +263,7 @@ test('calling `shutdown` changes server state to SERVER_IS_SHUTTING_DOWN', async
     throw new Error('Unexpected state.');
   }
 
-  await shutdown();
+  shutdown();
 
   t.is(terminate.called, false);
 });
@@ -315,7 +315,7 @@ test('error thrown from within a shutdown handler does not interrupt the shutdow
     throw new Error('Unexpected state.');
   }
 
-  await shutdown();
+  shutdown();
 
   t.is(shutdownHandler0.callCount, 1);
   t.is(shutdownHandler1.callCount, 1);
@@ -323,7 +323,7 @@ test('error thrown from within a shutdown handler does not interrupt the shutdow
   t.is(terminate.called, false);
 });
 
-test('calling `shutdown` multiple times results in shutdown handlers called once', async (t) => {
+test('calling `shutdown` multiple times results in shutdown handlers called once', (t) => {
   const terminate = stub();
 
   const lightship = createLightship({
@@ -355,7 +355,7 @@ test('calling `shutdown` multiple times results in shutdown handlers called once
     throw new Error('Unexpected state.');
   }
 
-  await shutdown();
+  shutdown();
 
   t.is(terminate.called, false);
 });
@@ -394,7 +394,7 @@ test('presence of live beacons suspend the shutdown routine', async (t) => {
     throw new Error('Unexpected state.');
   }
 
-  await shutdown();
+  shutdown();
 
   t.is(terminate.called, false);
 });
@@ -431,7 +431,7 @@ test('delays shutdown handlers', async (t) => {
     throw new Error('Unexpected state.');
   }
 
-  await shutdown();
+  shutdown();
 
   t.is(terminate.called, false);
 });

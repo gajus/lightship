@@ -1,11 +1,15 @@
 {
-  "parser": "@typescript-eslint/parser",
-  "plugins": [
-    "@typescript-eslint"
-  ],
   "extends": [
     "canonical",
-    "canonical/typescript"
+    "canonical/typescript",
+    "canonical/node"
+  ],
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "project": "./tsconfig.json"
+  },
+  "plugins": [
+    "@typescript-eslint"
   ],
   "root": true
 }
