@@ -88,7 +88,7 @@
     "url": "https://github.com/gajus/lightship"
   },
   "scripts": {
-    "build": "rm -fr ./dist && NODE_ENV=production babel ./src --out-dir ./dist --source-maps --extensions \".ts\" && tsc --emitDeclarationOnly",
+    "build": "rm -fr ./dist && tsc",
     "generate-readme": "gitdown ./.README/README.md --output-file ./README.md",
     "lint": "eslint ./src ./test --ext .js --ext .ts",
     "test": "NODE_ENV=test ava --verbose --serial",
