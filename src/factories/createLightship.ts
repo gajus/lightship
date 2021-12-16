@@ -39,10 +39,15 @@ const log = Logger.child({
   namespace: 'factories/createLightship',
 });
 
+const {
+  LIGHTSHIP_PORT,
+// eslint-disable-next-line node/no-process-env
+} = process.env;
+
 const defaultConfiguration: Configuration = {
   detectKubernetes: true,
   gracefulShutdownTimeout: 60_000,
-  port: 9_000,
+  port: LIGHTSHIP_PORT ? Number(LIGHTSHIP_PORT) : 9_000,
   shutdownDelay: 5_000,
   shutdownHandlerTimeout: 5_000,
   signals: [
