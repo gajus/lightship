@@ -1,4 +1,3 @@
-// eslint-disable-next-line fp/no-events
 import {
   EventEmitter,
 } from 'events';
@@ -69,8 +68,7 @@ export default (userConfiguration?: ConfigurationInput): Lightship => {
     resolveFirstReady = resolve;
   });
 
-  // eslint-disable-next-line promise/always-return, promise/catch-or-return
-  deferredFirstReady.then(() => {
+  void deferredFirstReady.then(() => {
     log.info('service became available for the first time');
   });
 
@@ -226,7 +224,7 @@ export default (userConfiguration?: ConfigurationInput): Lightship => {
           if (beacons.length > 0) {
             log.info({
               beacons,
-            }, 'program termination is on hold because there are live beacons');
+            } as {}, 'program termination is on hold because there are live beacons');
           } else {
             log.info('there are no live beacons; proceeding to terminate the Node.js process');
 
@@ -296,7 +294,7 @@ export default (userConfiguration?: ConfigurationInput): Lightship => {
           signal,
         }, 'received a shutdown signal');
 
-        shutdown(false);
+        void shutdown(false);
       });
     }
   }
@@ -312,7 +310,7 @@ export default (userConfiguration?: ConfigurationInput): Lightship => {
       die: async () => {
         log.trace({
           beacon,
-        }, 'beacon has been killed');
+        } as {}, 'beacon has been killed');
 
         beacons.splice(beacons.indexOf(beacon), 1);
 
@@ -332,8 +330,7 @@ export default (userConfiguration?: ConfigurationInput): Lightship => {
     queueBlockingTask: (blockingTask: BlockingTask) => {
       blockingTasks.push(blockingTask);
 
-      // eslint-disable-next-line promise/catch-or-return
-      blockingTask.then((result) => {
+      void blockingTask.then(() => {
         blockingTasks = blockingTasks.filter((maybeTargetBlockingTask) => {
           return maybeTargetBlockingTask !== blockingTask;
         });
@@ -341,8 +338,6 @@ export default (userConfiguration?: ConfigurationInput): Lightship => {
         if (blockingTasks.length === 0 && serverIsReady === true) {
           resolveFirstReady();
         }
-
-        return result;
       });
     },
     registerShutdownHandler: (shutdownHandler) => {

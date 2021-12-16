@@ -3,6 +3,7 @@ dist
 node_modules
 *.log
 .*
+!.nycrc
 !.babelrc
 !.editorconfig
 !.eslintignore

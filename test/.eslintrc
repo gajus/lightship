@@ -1,6 +1,8 @@
 {
   "extends": [
-    "../.eslintrc",
     "canonical/ava"
-  ]
+  ],
+  "rules": {
+    "ava/max-asserts": 0
+  }
 }

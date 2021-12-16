@@ -1,0 +1,10 @@
+{
+  "all": true,
+  "exclude": [
+    "**/dist/**"
+  ],
+  "extends": "@istanbuljs/nyc-config-typescript",
+  "include": [
+    "src/**/*.ts"
+  ]
+}

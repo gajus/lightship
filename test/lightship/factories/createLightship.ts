@@ -152,7 +152,8 @@ test('`queueBlockingTask` forces service into SERVER_IS_NOT_READY until blocking
     terminate,
   });
 
-  let resolveBlockingTask: () => void;
+  let resolveBlockingTask: (() => void) | undefined;
+
   const blockingTask = new Promise<void>((resolve) => {
     resolveBlockingTask = resolve;
   });
@@ -163,7 +164,9 @@ test('`queueBlockingTask` forces service into SERVER_IS_NOT_READY until blocking
 
   t.is(lightship.isServerReady(), false);
 
-  resolveBlockingTask!();
+  if (resolveBlockingTask) {
+    resolveBlockingTask();
+  }
 
   await delay(0);
 
@@ -243,7 +246,7 @@ test('calling `shutdown` changes server state to SERVER_IS_SHUTTING_DOWN', async
     });
   });
 
-  lightship.shutdown();
+  void lightship.shutdown();
 
   t.is(lightship.isServerReady(), false);
   t.is(lightship.isServerShuttingDown(), true);
@@ -278,7 +281,8 @@ test('invoking `shutdown` using a signal causes SERVER_IS_READY', (t) => {
     terminate,
   });
 
-  process.emit('LIGHTSHIP_TEST' as any);
+  // @ts-expect-error intentional dummy event
+  process.emit('LIGHTSHIP_TEST');
 
   t.is(lightship.isServerReady(), false);
   t.is(lightship.isServerShuttingDown(), true);
@@ -307,7 +311,7 @@ test('error thrown from within a shutdown handler does not interrupt the shutdow
   lightship.registerShutdownHandler(shutdownHandler0);
   lightship.registerShutdownHandler(shutdownHandler1);
 
-  lightship.shutdown();
+  void lightship.shutdown();
 
   await delay(500);
 
@@ -343,11 +347,11 @@ test('calling `shutdown` multiple times results in shutdown handlers called once
 
   t.is(shutdownHandler.callCount, 0);
 
-  lightship.shutdown();
+  void lightship.shutdown();
 
   t.is(shutdownHandler.callCount, 1);
 
-  lightship.shutdown();
+  void lightship.shutdown();
 
   t.is(shutdownHandler.callCount, 1);
 
@@ -382,7 +386,7 @@ test('presence of live beacons suspend the shutdown routine', async (t) => {
 
   t.is(shutdownHandler.callCount, 0);
 
-  lightship.shutdown();
+  void lightship.shutdown();
 
   t.is(shutdownHandler.callCount, 0);
 
@@ -417,7 +421,7 @@ test('delays shutdown handlers', async (t) => {
 
   lightship.registerShutdownHandler(shutdownHandler);
 
-  lightship.shutdown();
+  void lightship.shutdown();
 
   await delay(500);
 
