@@ -25,6 +25,7 @@
   },
   "description": "Abstracts readiness, liveness and startup checks and graceful shutdown of Node.js services running in Kubernetes.",
   "devDependencies": {
+    "@istanbuljs/nyc-config-typescript": "^1.0.2",
     "@types/express": "^4.17.13",
     "@types/http-terminator": "^2.0.2",
     "@types/node": "^16.9.2",
