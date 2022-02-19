@@ -111,38 +111,38 @@ export default async (userConfiguration?: ConfigurationInput): Promise<Lightship
     done();
   });
 
-  app.get('/health', (request, reply) => {
+  app.get('/health', async (request, reply) => {
     if (serverIsShuttingDown) {
-      void reply
+      await reply
         .code(500)
         .send(SERVER_IS_SHUTTING_DOWN);
     } else if (serverIsReady) {
-      void reply
+      await reply
         .send(SERVER_IS_READY);
     } else {
-      void reply
+      await reply
         .code(500)
         .send(SERVER_IS_NOT_READY);
     }
   });
 
-  app.get('/live', (request, reply) => {
+  app.get('/live', async (request, reply) => {
     if (serverIsShuttingDown) {
-      void reply
+      await reply
         .code(500)
         .send(SERVER_IS_SHUTTING_DOWN);
     } else {
-      void reply
+      await reply
         .send(SERVER_IS_NOT_SHUTTING_DOWN);
     }
   });
 
-  app.get('/ready', (request, reply) => {
+  app.get('/ready', async (request, reply) => {
     if (isServerReady()) {
-      void reply
+      await reply
         .send(SERVER_IS_READY);
     } else {
-      void reply
+      await reply
         .code(500)
         .send(SERVER_IS_NOT_READY);
     }
