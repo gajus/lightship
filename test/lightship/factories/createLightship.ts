@@ -129,6 +129,23 @@ test('calling `signalReady` changes server state to SERVER_IS_READY', async (t) 
   t.is(terminate.called, false);
 });
 
+test('returns service state multiple time', async (t) => {
+  const terminate = stub();
+
+  const lightship = await createLightship({
+    shutdownDelay: 0,
+    terminate,
+  });
+
+  await getServiceState(lightship);
+  await getServiceState(lightship);
+  await getServiceState(lightship);
+
+  await lightship.shutdown();
+
+  t.is(terminate.called, false);
+});
+
 test('calling `signalReady` resolves `whenFirstReady`', async (t) => {
   const terminate = stub();
 
