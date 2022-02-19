@@ -5,11 +5,15 @@ import test from 'ava';
 import axios from 'axios';
 import delay from 'delay';
 import {
-  stub, spy,
+  stub,
+  spy,
 } from 'sinon';
 import createLightship from '../../../src/factories/createLightship';
 import {
-  SERVER_IS_NOT_READY, SERVER_IS_NOT_SHUTTING_DOWN, SERVER_IS_READY, SERVER_IS_SHUTTING_DOWN,
+  SERVER_IS_NOT_READY,
+  SERVER_IS_NOT_SHUTTING_DOWN,
+  SERVER_IS_READY,
+  SERVER_IS_SHUTTING_DOWN,
 } from '../../../src/states';
 import type {
   Lightship,
@@ -72,7 +76,7 @@ const getServiceState = async (lightship: Lightship): Promise<ServiceState> => {
 test('server starts in SERVER_IS_NOT_READY state', async (t) => {
   const terminate = stub();
 
-  const lightship = createLightship({
+  const lightship = await createLightship({
     shutdownDelay: 0,
     terminate,
   });
@@ -99,7 +103,7 @@ test('server starts in SERVER_IS_NOT_READY state', async (t) => {
 test('calling `signalReady` changes server state to SERVER_IS_READY', async (t) => {
   const terminate = stub();
 
-  const lightship = createLightship({
+  const lightship = await createLightship({
     shutdownDelay: 0,
     terminate,
   });
@@ -128,7 +132,7 @@ test('calling `signalReady` changes server state to SERVER_IS_READY', async (t) 
 test('calling `signalReady` resolves `whenFirstReady`', async (t) => {
   const terminate = stub();
 
-  const lightship = createLightship({
+  const lightship = await createLightship({
     shutdownDelay: 0,
     terminate,
   });
@@ -147,7 +151,7 @@ test('calling `signalReady` resolves `whenFirstReady`', async (t) => {
 test('`queueBlockingTask` forces service into SERVER_IS_NOT_READY until blocking tasks are resolved', async (t) => {
   const terminate = stub();
 
-  const lightship = createLightship({
+  const lightship = await createLightship({
     shutdownDelay: 0,
     terminate,
   });
@@ -176,7 +180,7 @@ test('`queueBlockingTask` forces service into SERVER_IS_NOT_READY until blocking
 test('`whenFirstReady` resolves when all blocking tasks are resolved', async (t) => {
   const terminate = stub();
 
-  const lightship = createLightship({
+  const lightship = await createLightship({
     shutdownDelay: 0,
     terminate,
   });
@@ -203,7 +207,7 @@ test('`whenFirstReady` resolves when all blocking tasks are resolved', async (t)
 test('calling `signalNotReady` changes server state to SERVER_IS_NOT_READY', async (t) => {
   const terminate = stub();
 
-  const lightship = createLightship({
+  const lightship = await createLightship({
     shutdownDelay: 0,
     terminate,
   });
@@ -233,7 +237,7 @@ test('calling `signalNotReady` changes server state to SERVER_IS_NOT_READY', asy
 test('calling `shutdown` changes server state to SERVER_IS_SHUTTING_DOWN', async (t) => {
   const terminate = stub();
 
-  const lightship = createLightship({
+  const lightship = await createLightship({
     shutdownDelay: 0,
     terminate,
   });
@@ -271,13 +275,15 @@ test('calling `shutdown` changes server state to SERVER_IS_SHUTTING_DOWN', async
   t.is(terminate.called, false);
 });
 
-test('invoking `shutdown` using a signal causes SERVER_IS_READY', (t) => {
+test('invoking `shutdown` using a signal causes SERVER_IS_READY', async (t) => {
   const terminate = stub();
 
-  const lightship = createLightship({
+  const lightship = await createLightship({
     detectKubernetes: false,
     shutdownDelay: 0,
-    signals: ['LIGHTSHIP_TEST'],
+    signals: [
+      'LIGHTSHIP_TEST',
+    ],
     terminate,
   });
 
@@ -291,7 +297,7 @@ test('invoking `shutdown` using a signal causes SERVER_IS_READY', (t) => {
 test('error thrown from within a shutdown handler does not interrupt the shutdown sequence', async (t) => {
   const terminate = stub();
 
-  const lightship = createLightship({
+  const lightship = await createLightship({
     shutdownDelay: 0,
     terminate,
   });
@@ -327,10 +333,10 @@ test('error thrown from within a shutdown handler does not interrupt the shutdow
   t.is(terminate.called, false);
 });
 
-test('calling `shutdown` multiple times results in shutdown handlers called once', (t) => {
+test('calling `shutdown` multiple times results in shutdown handlers called once', async (t) => {
   const terminate = stub();
 
-  const lightship = createLightship({
+  const lightship = await createLightship({
     shutdownDelay: 0,
     terminate,
   });
@@ -367,7 +373,7 @@ test('calling `shutdown` multiple times results in shutdown handlers called once
 test('presence of live beacons suspend the shutdown routine', async (t) => {
   const terminate = stub();
 
-  const lightship = createLightship({
+  const lightship = await createLightship({
     shutdownDelay: 0,
     terminate,
   });
@@ -406,7 +412,7 @@ test('presence of live beacons suspend the shutdown routine', async (t) => {
 test('delays shutdown handlers', async (t) => {
   const terminate = stub();
 
-  const lightship = createLightship({
+  const lightship = await createLightship({
     shutdownDelay: 1_000,
     terminate,
   });

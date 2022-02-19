@@ -1,17 +1,11 @@
 import {
   EventEmitter,
 } from 'events';
-import type {
-  AddressInfo,
-} from 'net';
 import {
-  Handlers as SentryHandlers,
+  captureException,
 } from '@sentry/node';
 import delay from 'delay';
-import express from 'express';
-import {
-  createHttpTerminator,
-} from 'http-terminator';
+import createFastify from 'fastify';
 import {
   serializeError,
 } from 'serialize-error';
@@ -65,7 +59,7 @@ type Beacon = {
   context: BeaconContext,
 };
 
-export default (userConfiguration?: ConfigurationInput): Lightship => {
+export default async (userConfiguration?: ConfigurationInput): Promise<Lightship> => {
   let blockingTasks: BlockingTask[] = [];
 
   let resolveFirstReady: () => void;
@@ -105,59 +99,58 @@ export default (userConfiguration?: ConfigurationInput): Lightship => {
     return serverIsReady;
   };
 
-  const app = express();
+  const app = createFastify();
 
-  const modeIsLocal = configuration.detectKubernetes === true && isKubernetes() === false;
+  app.addHook('onError', (request, reply, error, done) => {
+    // Only send Sentry errors when not in development
+    // eslint-disable-next-line node/no-process-env
+    if (process.env.NODE_ENV !== 'development') {
+      captureException(error);
+    }
 
-  const server = app.listen(modeIsLocal ? undefined : configuration.port, () => {
-    const address = server.address() as AddressInfo;
-    log.info('Lightship HTTP service is running on port %s', address.port);
+    done();
   });
 
-  const httpTerminator = createHttpTerminator({
-    server,
-  });
-
-  app.use(SentryHandlers.requestHandler());
-
-  app.get('/health', (incomingMessage, serverResponse) => {
+  app.get('/health', (request, reply) => {
     if (serverIsShuttingDown) {
-      serverResponse
-        .status(500)
+      void reply
+        .code(500)
         .send(SERVER_IS_SHUTTING_DOWN);
     } else if (serverIsReady) {
-      serverResponse
+      void reply
         .send(SERVER_IS_READY);
     } else {
-      serverResponse
-        .status(500)
+      void reply
+        .code(500)
         .send(SERVER_IS_NOT_READY);
     }
   });
 
-  app.get('/live', (incomingMessage, serverResponse) => {
+  app.get('/live', (request, reply) => {
     if (serverIsShuttingDown) {
-      serverResponse
-        .status(500)
+      void reply
+        .code(500)
         .send(SERVER_IS_SHUTTING_DOWN);
     } else {
-      serverResponse
+      void reply
         .send(SERVER_IS_NOT_SHUTTING_DOWN);
     }
   });
 
-  app.get('/ready', (incomingMessage, serverResponse) => {
+  app.get('/ready', (request, reply) => {
     if (isServerReady()) {
-      serverResponse
+      void reply
         .send(SERVER_IS_READY);
     } else {
-      serverResponse
-        .status(500)
+      void reply
+        .code(500)
         .send(SERVER_IS_NOT_READY);
     }
   });
 
-  app.use(SentryHandlers.errorHandler());
+  const modeIsLocal = configuration.detectKubernetes === true && isKubernetes() === false;
+
+  await app.listen(modeIsLocal ? 0 : configuration.port, '0.0.0.0');
 
   const signalNotReady = () => {
     if (serverIsReady === false) {
@@ -279,7 +272,7 @@ export default (userConfiguration?: ConfigurationInput): Lightship => {
 
     log.debug('all shutdown handlers have run to completion; proceeding to terminate the Node.js process');
 
-    await httpTerminator.terminate();
+    void app.close();
 
     setTimeout(() => {
       log.warn('process did not exit on its own; investigate what is keeping the event loop active');
@@ -348,7 +341,7 @@ export default (userConfiguration?: ConfigurationInput): Lightship => {
     registerShutdownHandler: (shutdownHandler) => {
       shutdownHandlers.push(shutdownHandler);
     },
-    server,
+    server: app.server,
     shutdown: () => {
       return shutdown(false);
     },

@@ -76,7 +76,7 @@ import {
 
 const configuration: ConfigurationInput = {};
 
-const lightship: Lightship = createLightship(configuration);
+const lightship: Lightship = await createLightship(configuration);
 
 ```
 
@@ -191,7 +191,7 @@ import {
   createLightship
 } from 'lightship';
 
-const lightship = createLightship();
+const lightship = await createLightship();
 
 lightship.queueBlockingTask(new Promise((resolve) => {
   setTimeout(() => {
@@ -226,7 +226,7 @@ import {
   createLightship
 } from 'lightship';
 
-const lightship = createLightship();
+const lightship = await createLightship();
 
 const app = express();
 
@@ -291,7 +291,7 @@ const server = app
     lightship.shutdown();
   });;
 
-const lightship = createLightship();
+const lightship = await createLightship();
 
 lightship.registerShutdownHandler(() => {
   server.close();
@@ -333,7 +333,7 @@ app.get('/', (req, res) => {
 
 const server = app.listen(8080);
 
-const lightship = createLightship();
+const lightship = await createLightship();
 
 lightship.registerShutdownHandler(() => {
   server.close();
@@ -389,7 +389,7 @@ app.get('/', (req, res) => {
 
 const server = app.listen(8080);
 
-const lightship = createLightship();
+const lightship = await createLightship();
 
 lightship.registerShutdownHandler(async () => {
   // Allow sufficient amount of time to allow all of the existing
@@ -416,7 +416,7 @@ Beacons are used to delay the registered shutdown handler routine.
 A beacon can be created using `createBeacon()` method, e.g.
 
 ```js
-const lightship = createLightship();
+const lightship = await createLightship();
 
 const beacon = lightship.createBeacon();
 
@@ -567,7 +567,7 @@ app.get('/', (req, res) => {
 
 const server = app.listen(8080);
 
-const lightship = createLightship();
+const lightship = await createLightship();
 
 lightship.registerShutdownHandler(() => {
   server.close();
