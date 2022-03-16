@@ -43,7 +43,7 @@
     "typescript": "^4.5.4"
   },
   "engines": {
-    "node": ">=10"
+    "node": ">=14"
   },
   "husky": {
     "hooks": {
