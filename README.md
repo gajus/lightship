@@ -1,5 +1,6 @@
 <a name="lightship"></a>
-# Lightship 🚢
+# Lightship ES6🚢
+## This is Lightship implemented in ES6
 
 [![Travis build status](http://img.shields.io/travis/gajus/lightship/master.svg?style=flat-square)](https://travis-ci.org/gajus/lightship)
 [![Coveralls](https://img.shields.io/coveralls/gajus/lightship.svg?style=flat-square)](https://coveralls.io/github/gajus/lightship)

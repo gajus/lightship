@@ -4,17 +4,6 @@
     "name": "Gajus Kuizinas",
     "url": "http://gajus.com"
   },
-  "ava": {
-    "extensions": [
-      "ts"
-    ],
-    "files": [
-      "test/lightship/**/*"
-    ],
-    "require": [
-      "ts-node/register/transpile-only"
-    ]
-  },
   "dependencies": {
     "@sentry/node": "^6.16.1",
     "delay": "^5.0.0",
@@ -43,7 +32,7 @@
     "typescript": "^4.5.4"
   },
   "engines": {
-    "node": ">=14"
+    "node": " >=14.13.1 || >=16.0.0"
   },
   "husky": {
     "hooks": {
@@ -54,9 +43,10 @@
     "kubernetes"
   ],
   "license": "BSD-3-Clause",
-  "main": "./dist/src/index.js",
+  "exports": "./dist/src/index.js",
   "types": "./dist/src/index.d.ts",
   "name": "lightship",
+  "type": "module",
   "repository": {
     "type": "git",
     "url": "https://github.com/gajus/lightship"
@@ -65,8 +55,8 @@
     "build": "rm -fr ./dist && tsc",
     "generate-readme": "gitdown ./.README/README.md --output-file ./README.md",
     "lint": "eslint ./src ./test",
-    "test": "NODE_ENV=test ava --verbose --serial",
+    "test": "echo \"Error: AVA NOT WORKING WITH ES6\" && exit 1",
     "typecheck": "tsc --noEmit"
   },
-  "version": "1.0.0"
+  "version": "2.0.0"
 }

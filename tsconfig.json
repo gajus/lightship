@@ -4,9 +4,9 @@
     "declaration": true,
     "esModuleInterop": true,
     "lib": [
-      "es2019"
+      "es2019",
     ],
-    "module": "commonjs",
+    "module": "ES6",
     "moduleResolution": "node",
     "noImplicitReturns": true,
     "noUnusedLocals": true,
