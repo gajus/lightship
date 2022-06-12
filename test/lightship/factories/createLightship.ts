@@ -37,6 +37,7 @@ const getLightshipPort = (lightship: Lightship) => {
 
 function getServiceState (lightship: Lightship, method: 'GET'): Promise<ServiceState>;
 function getServiceState (lightship: Lightship, method: 'HEAD'): Promise<ServiceState<Pick<ProbeState, 'status'>>>;
+// eslint-disable-next-line func-style
 async function getServiceState (lightship: Lightship, method: 'GET' | 'HEAD'): Promise<ServiceState<Pick<ProbeState, 'status'> | ProbeState>> {
   const port = getLightshipPort(lightship);
   const baseURL = `http://127.0.0.1:${port}`;
