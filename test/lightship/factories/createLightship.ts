@@ -35,19 +35,28 @@ const getLightshipPort = (lightship: Lightship) => {
   return address.port;
 };
 
-function getServiceState(lightship: Lightship, method: 'GET'): Promise<ServiceState>;
-function getServiceState(lightship: Lightship, method: 'HEAD'): Promise<ServiceState<Pick<ProbeState, 'status'>>>;
-async function getServiceState(lightship: Lightship, method: 'GET' | 'HEAD'): Promise<ServiceState<ProbeState | Pick<ProbeState, 'status'>>> {
-
+function getServiceState (lightship: Lightship, method: 'GET'): Promise<ServiceState>;
+function getServiceState (lightship: Lightship, method: 'HEAD'): Promise<ServiceState<Pick<ProbeState, 'status'>>>;
+async function getServiceState (lightship: Lightship, method: 'GET' | 'HEAD'): Promise<ServiceState<Pick<ProbeState, 'status'> | ProbeState>> {
   const port = getLightshipPort(lightship);
-  const baseURL = `http://127.0.0.1:${port}`
-  const baseAxios = axios.create({ baseURL, validateStatus: () => true, method })
+  const baseURL = `http://127.0.0.1:${port}`;
+  const baseAxios = axios.create({
+    baseURL,
+    method,
+    validateStatus: () => {
+      return true;
+    },
+  });
 
-  const [health, live, ready] = await Promise.all([
+  const [
+    health,
+    live,
+    ready,
+  ] = await Promise.all([
     baseAxios('/health'),
     baseAxios('/live'),
     baseAxios('/ready'),
-  ])
+  ]);
 
   if (method === 'GET') {
     return {
@@ -67,7 +76,7 @@ async function getServiceState(lightship: Lightship, method: 'GET' | 'HEAD'): Pr
   } else {
     return {
       health: {
-        status: health.status
+        status: health.status,
       },
       live: {
         status: live.status,
@@ -75,11 +84,9 @@ async function getServiceState(lightship: Lightship, method: 'GET' | 'HEAD'): Pr
       ready: {
         status: ready.status,
       },
-    }
+    };
   }
-
-
-};
+}
 
 test('server starts in SERVER_IS_NOT_READY state', async (t) => {
   const terminate = stub();
@@ -147,13 +154,12 @@ test('server responds to HEAD requests', async (t) => {
 
   lightship.signalReady();
 
-  const state = await getServiceState(lightship, 'HEAD')
+  const state = await getServiceState(lightship, 'HEAD');
 
-  t.is(state.health.status, 200)
-  t.is(state.health.status, 200)
-  t.is(state.health.status, 200)
-
-})
+  t.is(state.health.status, 200);
+  t.is(state.health.status, 200);
+  t.is(state.health.status, 200);
+});
 
 test('returns service state multiple time', async (t) => {
   const terminate = stub();
