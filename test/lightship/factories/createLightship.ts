@@ -466,7 +466,7 @@ test('delays shutdown handlers', async (t) => {
 test('errors produced by blocking tasks causes a service shutdown', async (t) => {
   const terminate = stub();
 
-  const lightship = createLightship({
+  const lightship = await createLightship({
     shutdownDelay: 0,
     terminate,
   });
