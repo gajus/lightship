@@ -40,7 +40,7 @@ const {
 
 const defaultConfiguration: Configuration = {
   detectKubernetes: true,
-  gracefulShutdownTimeout: 60_000,
+  gracefulShutdownTimeout: 30_000,
   port: LIGHTSHIP_PORT ? Number(LIGHTSHIP_PORT) : 9_000,
   shutdownDelay: 5_000,
   shutdownHandlerTimeout: 5_000,
