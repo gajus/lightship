@@ -496,3 +496,32 @@ test('delays shutdown handlers', async (t) => {
   t.is(terminate.called, false);
 });
 
+test('errors produced by blocking tasks causes a service shutdown', async (t) => {
+  const terminate = stub();
+
+  const lightship = await createLightship({
+    shutdownDelay: 0,
+    terminate,
+  });
+
+  let rejectBlockingTask: (() => void) | undefined;
+
+  const blockingTask = new Promise<void>((resolve, reject) => {
+    rejectBlockingTask = reject;
+  });
+
+  lightship.queueBlockingTask(blockingTask);
+
+  lightship.signalReady();
+
+  t.is(lightship.isServerReady(), false);
+
+  if (rejectBlockingTask) {
+    rejectBlockingTask();
+  }
+
+  await delay(0);
+
+  t.is(lightship.isServerShuttingDown(), true);
+  t.is(lightship.isServerReady(), false);
+});
