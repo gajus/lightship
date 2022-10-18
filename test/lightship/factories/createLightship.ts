@@ -36,22 +36,25 @@ const getLightshipPort = (lightship: Lightship) => {
   return address.port;
 };
 
-const getServiceState = async (lightship: Lightship): Promise<ServiceState> => {
+const getServiceState = async (lightship: Lightship, method: 'GET'): Promise<ServiceState> => {
   const port = getLightshipPort(lightship);
 
   const health = await axios('http://127.0.0.1:' + port + '/health', {
+    method,
     validateStatus: () => {
       return true;
     },
   });
 
   const live = await axios('http://127.0.0.1:' + port + '/live', {
+    method,
     validateStatus: () => {
       return true;
     },
   });
 
   const ready = await axios('http://127.0.0.1:' + port + '/ready', {
+    method,
     validateStatus: () => {
       return true;
     },
@@ -84,7 +87,7 @@ test('server starts in SERVER_IS_NOT_READY state', async (t) => {
   t.is(lightship.isServerReady(), false);
   t.is(lightship.isServerShuttingDown(), false);
 
-  const serviceState = await getServiceState(lightship);
+  const serviceState = await getServiceState(lightship, 'GET');
 
   t.is(serviceState.health.status, 500);
   t.is(serviceState.health.message, SERVER_IS_NOT_READY);
@@ -113,7 +116,7 @@ test('calling `signalReady` changes server state to SERVER_IS_READY', async (t) 
   t.is(lightship.isServerReady(), true);
   t.is(lightship.isServerShuttingDown(), false);
 
-  const serviceState = await getServiceState(lightship);
+  const serviceState = await getServiceState(lightship, 'GET');
 
   t.is(serviceState.health.status, 200);
   t.is(serviceState.health.message, SERVER_IS_READY);
@@ -137,9 +140,9 @@ test('returns service state multiple time', async (t) => {
     terminate,
   });
 
-  await getServiceState(lightship);
-  await getServiceState(lightship);
-  await getServiceState(lightship);
+  await getServiceState(lightship, 'GET');
+  await getServiceState(lightship, 'GET');
+  await getServiceState(lightship, 'GET');
 
   await lightship.shutdown();
 
@@ -235,7 +238,7 @@ test('calling `signalNotReady` changes server state to SERVER_IS_NOT_READY', asy
   t.is(lightship.isServerReady(), false);
   t.is(lightship.isServerShuttingDown(), false);
 
-  const serviceState = await getServiceState(lightship);
+  const serviceState = await getServiceState(lightship, 'GET');
 
   t.is(serviceState.health.status, 500);
   t.is(serviceState.health.message, SERVER_IS_NOT_READY);
@@ -272,7 +275,7 @@ test('calling `shutdown` changes server state to SERVER_IS_SHUTTING_DOWN', async
   t.is(lightship.isServerReady(), false);
   t.is(lightship.isServerShuttingDown(), true);
 
-  const serviceState = await getServiceState(lightship);
+  const serviceState = await getServiceState(lightship, 'GET');
 
   t.is(serviceState.health.status, 500);
   t.is(serviceState.health.message, SERVER_IS_SHUTTING_DOWN);

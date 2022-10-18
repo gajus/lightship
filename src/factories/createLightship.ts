@@ -98,7 +98,9 @@ export default async (userConfiguration?: ConfigurationInput): Promise<Lightship
     return serverIsReady;
   };
 
-  const app = createFastify();
+  const app = createFastify({
+    exposeHeadRoutes: true,
+  });
 
   app.addHook('onError', (request, reply, error, done) => {
     // Only send Sentry errors when not in development
