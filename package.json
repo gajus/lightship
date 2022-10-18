@@ -18,8 +18,8 @@
   "dependencies": {
     "@sentry/node": "^6.16.1",
     "delay": "^5.0.0",
-    "fastify": "^3.27.2",
-    "roarr": "^7.8.0",
+    "fastify": "^4.9.2",
+    "roarr": "^7.13.0",
     "serialize-error": "^8.1.0"
   },
   "description": "Abstracts readiness, liveness and startup checks and graceful shutdown of Node.js services running in Kubernetes.",
