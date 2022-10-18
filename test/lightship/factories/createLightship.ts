@@ -20,7 +20,7 @@ import type {
 } from '../../../src/types';
 
 type ProbeState = {
-  readonly message: string,
+  readonly message?: string,
   readonly status: number,
 };
 
@@ -36,7 +36,7 @@ const getLightshipPort = (lightship: Lightship) => {
   return address.port;
 };
 
-const getServiceState = async (lightship: Lightship, method: 'GET'): Promise<ServiceState> => {
+const getServiceState = async (lightship: Lightship, method: 'GET' | 'HEAD'): Promise<ServiceState> => {
   const port = getLightshipPort(lightship);
 
   const health = await axios('http://127.0.0.1:' + port + '/health', {
@@ -103,6 +103,28 @@ test('server starts in SERVER_IS_NOT_READY state', async (t) => {
   t.is(terminate.called, false);
 });
 
+test('server starts in SERVER_IS_NOT_READY state (HEAD)', async (t) => {
+  const terminate = stub();
+
+  const lightship = await createLightship({
+    shutdownDelay: 0,
+    terminate,
+  });
+
+  t.is(lightship.isServerReady(), false);
+  t.is(lightship.isServerShuttingDown(), false);
+
+  const serviceState = await getServiceState(lightship, 'HEAD');
+
+  t.is(serviceState.health.status, 500);
+  t.is(serviceState.live.status, 200);
+  t.is(serviceState.ready.status, 500);
+
+  await lightship.shutdown();
+
+  t.is(terminate.called, false);
+});
+
 test('calling `signalReady` changes server state to SERVER_IS_READY', async (t) => {
   const terminate = stub();
 
@@ -126,6 +148,30 @@ test('calling `signalReady` changes server state to SERVER_IS_READY', async (t) 
 
   t.is(serviceState.ready.status, 200);
   t.is(serviceState.ready.message, SERVER_IS_READY);
+
+  await lightship.shutdown();
+
+  t.is(terminate.called, false);
+});
+
+test('calling `signalReady` changes server state to SERVER_IS_READY (HEAD)', async (t) => {
+  const terminate = stub();
+
+  const lightship = await createLightship({
+    shutdownDelay: 0,
+    terminate,
+  });
+
+  lightship.signalReady();
+
+  t.is(lightship.isServerReady(), true);
+  t.is(lightship.isServerShuttingDown(), false);
+
+  const serviceState = await getServiceState(lightship, 'GET');
+
+  t.is(serviceState.health.status, 200);
+  t.is(serviceState.live.status, 200);
+  t.is(serviceState.ready.status, 200);
 
   await lightship.shutdown();
 
