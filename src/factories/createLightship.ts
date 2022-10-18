@@ -63,12 +63,11 @@ export default async (userConfiguration?: ConfigurationInput): Promise<Lightship
   let blockingTasks: BlockingTask[] = [];
 
   let resolveFirstReady: () => void;
-  const deferredFirstReady = new Promise<void>((resolve) => {
-    resolveFirstReady = resolve;
-  });
+  let rejectFirstReady: () => void;
 
-  void deferredFirstReady.then(() => {
-    log.info('service became available for the first time');
+  const deferredFirstReady = new Promise<void>((resolve, reject) => {
+    resolveFirstReady = resolve;
+    rejectFirstReady = reject;
   });
 
   const eventEmitter = new EventEmitter();
@@ -319,6 +318,16 @@ export default async (userConfiguration?: ConfigurationInput): Promise<Lightship
     };
   };
 
+  void deferredFirstReady.then(() => {
+    log.info('service became available for the first time');
+  }).catch((error) => {
+    log.error({
+      error: serializeError(error),
+    }, 'service failed to become available for the first time');
+
+    return shutdown(false);
+  });
+
   return {
     createBeacon,
     isServerReady,
@@ -336,7 +345,7 @@ export default async (userConfiguration?: ConfigurationInput): Promise<Lightship
         if (blockingTasks.length === 0 && serverIsReady === true) {
           resolveFirstReady();
         }
-      });
+      }).catch(rejectFirstReady);
     },
     registerShutdownHandler: (shutdownHandler) => {
       shutdownHandlers.push(shutdownHandler);
