@@ -1,5 +1,5 @@
-import type {
-  Server,
+import {
+  type Server,
 } from 'http';
 
 /**

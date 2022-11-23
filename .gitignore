@@ -3,14 +3,13 @@ dist
 node_modules
 *.log
 .*
-!.nycrc
-!.babelrc
 !.editorconfig
 !.eslintignore
 !.eslintrc
 !.gitignore
 !.ncurc.js
 !.npmignore
+!.nycrc
 !.README
-!.travis.yml
+!.releaserc
 /package-lock.json
