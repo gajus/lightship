@@ -308,7 +308,7 @@ test('calling `shutdown` changes server state to SERVER_IS_SHUTTING_DOWN', async
     terminate,
   });
 
-  let shutdown: (() => void) | undefined;
+  let shutdown: ((value?: unknown) => void) | undefined;
 
   lightship.registerShutdownHandler(async () => {
     await new Promise((resolve) => {
