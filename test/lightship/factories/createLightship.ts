@@ -1,5 +1,5 @@
-import type {
-  AddressInfo,
+import {
+  type AddressInfo,
 } from 'net';
 import test from 'ava';
 import axios from 'axios';
@@ -15,8 +15,8 @@ import {
   SERVER_IS_READY,
   SERVER_IS_SHUTTING_DOWN,
 } from '../../../src/states';
-import type {
-  Lightship,
+import {
+  type Lightship,
 } from '../../../src/types';
 
 type ProbeState = {
@@ -310,8 +310,8 @@ test('calling `shutdown` changes server state to SERVER_IS_SHUTTING_DOWN', async
 
   let shutdown: (() => void) | undefined;
 
-  lightship.registerShutdownHandler(() => {
-    return new Promise((resolve) => {
+  lightship.registerShutdownHandler(async () => {
+    await new Promise((resolve) => {
       shutdown = resolve;
     });
   });
@@ -374,8 +374,8 @@ test('error thrown from within a shutdown handler does not interrupt the shutdow
 
   let shutdown: (() => void) | undefined;
 
-  const shutdownHandler1 = spy(() => {
-    return new Promise<void>((resolve) => {
+  const shutdownHandler1 = spy(async () => {
+    await new Promise<void>((resolve) => {
       shutdown = resolve;
     });
   });
@@ -409,8 +409,8 @@ test('calling `shutdown` multiple times results in shutdown handlers called once
 
   let shutdown: (() => void) | undefined;
 
-  const shutdownHandler = spy(() => {
-    return new Promise<void>((resolve) => {
+  const shutdownHandler = spy(async () => {
+    await new Promise<void>((resolve) => {
       shutdown = resolve;
     });
   });
@@ -446,8 +446,8 @@ test('presence of live beacons suspend the shutdown routine', async (t) => {
 
   let shutdown: (() => void) | undefined;
 
-  const shutdownHandler = spy(() => {
-    return new Promise<void>((resolve) => {
+  const shutdownHandler = spy(async () => {
+    await new Promise<void>((resolve) => {
       shutdown = resolve;
     });
   });
@@ -485,8 +485,8 @@ test('delays shutdown handlers', async (t) => {
 
   let shutdown: (() => void) | undefined;
 
-  const shutdownHandler = spy(() => {
-    return new Promise<void>((resolve) => {
+  const shutdownHandler = spy(async () => {
+    await new Promise<void>((resolve) => {
       shutdown = resolve;
     });
   });

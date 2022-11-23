@@ -1,3 +1,5 @@
+/* eslint-disable promise/prefer-await-to-then */
+
 import {
   EventEmitter,
 } from 'events';
@@ -16,14 +18,14 @@ import {
   SERVER_IS_READY,
   SERVER_IS_SHUTTING_DOWN,
 } from '../states';
-import type {
-  BeaconContext,
-  BlockingTask,
-  ConfigurationInput,
-  Configuration,
-  Lightship,
-  ShutdownHandler,
-  BeaconController,
+import {
+  type BeaconContext,
+  type BlockingTask,
+  type ConfigurationInput,
+  type Configuration,
+  type Lightship,
+  type ShutdownHandler,
+  type BeaconController,
 } from '../types';
 import {
   isKubernetes,
@@ -322,12 +324,12 @@ export default async (userConfiguration?: ConfigurationInput): Promise<Lightship
 
   void deferredFirstReady.then(() => {
     log.info('service became available for the first time');
-  }).catch((error) => {
+  }).catch(async (error) => {
     log.error({
       error: serializeError(error),
     }, 'service failed to become available for the first time');
 
-    return shutdown(false);
+    await shutdown(false);
   });
 
   return {
@@ -353,13 +355,13 @@ export default async (userConfiguration?: ConfigurationInput): Promise<Lightship
       shutdownHandlers.push(shutdownHandler);
     },
     server: app.server,
-    shutdown: () => {
-      return shutdown(false);
+    shutdown: async () => {
+      await shutdown(false);
     },
     signalNotReady,
     signalReady,
-    whenFirstReady: () => {
-      return deferredFirstReady;
+    whenFirstReady: async () => {
+      await deferredFirstReady;
     },
   };
 };

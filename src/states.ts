@@ -1,5 +1,5 @@
-import type {
-  State,
+import {
+  type State,
 } from './types';
 
 const createState = <TState extends State>(subject: TState): TState => {
