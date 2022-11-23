@@ -153,7 +153,10 @@ export default async (userConfiguration?: ConfigurationInput): Promise<Lightship
 
   const modeIsLocal = configuration.detectKubernetes === true && isKubernetes() === false;
 
-  await app.listen(modeIsLocal ? 0 : configuration.port, '0.0.0.0');
+  await app.listen({
+    host: '0.0.0.0',
+    port: modeIsLocal ? 0 : configuration.port,
+  });
 
   const signalNotReady = () => {
     if (serverIsReady === false) {
