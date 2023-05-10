@@ -5,15 +5,9 @@
     "url": "http://gajus.com"
   },
   "ava": {
-    "extensions": [
-      "ts"
-    ],
-    "files": [
-      "test/lightship/**/*"
-    ],
-    "require": [
-      "ts-node/register/transpile-only"
-    ]
+    "extensions": {
+      "ts": "module"
+    }
   },
   "dependencies": {
     "delay": "^5.0.0",
@@ -42,6 +36,7 @@
     "semantic-release": "^19.0.5",
     "sinon": "^14.0.2",
     "ts-node": "^10.9.1",
+    "tsx": "^3.12.7",
     "typescript": "^4.9.3"
   },
   "files": [
@@ -76,7 +71,7 @@
     "build": "rm -fr ./dist && tsc --project ./tsconfig.build.json",
     "generate-readme": "gitdown ./.README/README.md --output-file ./README.md",
     "lint": "eslint ./src ./test",
-    "test": "NODE_ENV=test ava --verbose --serial",
+    "test": "NODE_OPTIONS='--loader=tsx --no-warnings' ava --verbose --serial",
     "typecheck": "tsc --noEmit"
   },
   "version": "1.0.0"
