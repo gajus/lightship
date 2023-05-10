@@ -51,11 +51,6 @@
     "src",
     "dist"
   ],
-  "husky": {
-    "hooks": {
-      "pre-commit": "npm run lint && npm run test && npm run build"
-    }
-  },
   "keywords": [
     "kubernetes"
   ],
@@ -68,6 +63,7 @@
   "scripts": {
     "build": "rm -fr ./dist && tsc --project ./tsconfig.build.json",
     "lint": "eslint . && tsc",
+    "prepare": "husky install",
     "test": "NODE_OPTIONS='--loader=tsx --no-warnings' ava --verbose --serial"
   },
   "type": "module",
