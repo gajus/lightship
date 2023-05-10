@@ -30,7 +30,6 @@
     "coveralls": "^3.1.1",
     "eslint": "^8.40.0",
     "eslint-config-canonical": "^41.0.4",
-    "gitdown": "^3.1.5",
     "husky": "^5.0.0",
     "nyc": "^15.1.0",
     "semantic-release": "^19.0.5",
@@ -54,7 +53,7 @@
   ],
   "husky": {
     "hooks": {
-      "pre-commit": "npm run lint && npm run typecheck && npm run test && npm run build"
+      "pre-commit": "npm run lint && npm run test && npm run build"
     }
   },
   "keywords": [
@@ -68,10 +67,8 @@
   },
   "scripts": {
     "build": "rm -fr ./dist && tsc --project ./tsconfig.build.json",
-    "generate-readme": "gitdown ./.README/README.md --output-file ./README.md",
-    "lint": "eslint ./src ./test",
-    "test": "NODE_OPTIONS='--loader=tsx --no-warnings' ava --verbose --serial",
-    "typecheck": "tsc --noEmit"
+    "lint": "eslint . && tsc",
+    "test": "NODE_OPTIONS='--loader=tsx --no-warnings' ava --verbose --serial"
   },
   "type": "module",
   "version": "1.0.0"
