@@ -4,5 +4,5 @@ export {
 export type {
   Lightship,
   ConfigurationInput,
-  BeaconController
+  BeaconController,
 } from './types';
