@@ -1,16 +1,6 @@
 /* eslint-disable promise/prefer-await-to-then */
 
-import {
-  EventEmitter,
-} from 'events';
-import delay from 'delay';
-import createFastify from 'fastify';
-import {
-  serializeError,
-} from 'serialize-error';
-import {
-  Logger,
-} from '../Logger.js';
+import { Logger } from '../Logger.js';
 import {
   SERVER_IS_NOT_READY,
   SERVER_IS_NOT_SHUTTING_DOWN,
@@ -19,16 +9,18 @@ import {
 } from '../states.js';
 import {
   type BeaconContext,
+  type BeaconController,
   type BlockingTask,
-  type ConfigurationInput,
   type Configuration,
+  type ConfigurationInput,
   type Lightship,
   type ShutdownHandler,
-  type BeaconController,
 } from '../types.js';
-import {
-  isKubernetes,
-} from '../utilities/isKubernetes.js';
+import { isKubernetes } from '../utilities/isKubernetes.js';
+import delay from 'delay';
+import createFastify from 'fastify';
+import { EventEmitter } from 'node:events';
+import { serializeError } from 'serialize-error';
 
 const log = Logger.child({
   namespace: 'factories/createLightship',
@@ -36,7 +28,7 @@ const log = Logger.child({
 
 const {
   LIGHTSHIP_PORT,
-// eslint-disable-next-line node/no-process-env
+  // eslint-disable-next-line node/no-process-env
 } = process.env;
 
 const defaultConfiguration: Configuration = {
@@ -45,11 +37,7 @@ const defaultConfiguration: Configuration = {
   port: LIGHTSHIP_PORT ? Number(LIGHTSHIP_PORT) : 9_000,
   shutdownDelay: 5_000,
   shutdownHandlerTimeout: 5_000,
-  signals: [
-    'SIGTERM',
-    'SIGHUP',
-    'SIGINT',
-  ],
+  signals: ['SIGTERM', 'SIGHUP', 'SIGINT'],
   terminate: () => {
     // eslint-disable-next-line node/no-process-exit
     process.exit(1);
@@ -57,10 +45,12 @@ const defaultConfiguration: Configuration = {
 };
 
 type Beacon = {
-  context: BeaconContext,
+  context: BeaconContext;
 };
 
-export const createLightship = async (userConfiguration?: ConfigurationInput): Promise<Lightship> => {
+export const createLightship = async (
+  userConfiguration?: ConfigurationInput,
+): Promise<Lightship> => {
   let blockingTasks: BlockingTask[] = [];
 
   let resolveFirstReady: () => void;
@@ -82,21 +72,28 @@ export const createLightship = async (userConfiguration?: ConfigurationInput): P
     ...userConfiguration,
   };
 
-  const modeIsLocal = configuration.detectKubernetes === true && isKubernetes() === false;
+  const modeIsLocal =
+    configuration.detectKubernetes === true && isKubernetes() === false;
 
   if (modeIsLocal) {
     log.info('running in local mode');
 
     if (userConfiguration?.shutdownDelay === undefined) {
-      log.info('detected local mode and shutdownDelay is not configured, defaulting shutdownDelay to 0ms');
+      log.info(
+        'detected local mode and shutdownDelay is not configured, defaulting shutdownDelay to 0ms',
+      );
 
       // @ts-expect-error overriding read-only value
       configuration.shutdownDelay = 0;
     }
   }
 
-  if (configuration.gracefulShutdownTimeout < configuration.shutdownHandlerTimeout) {
-    throw new Error('gracefulShutdownTimeout cannot be lesser than shutdownHandlerTimeout.');
+  if (
+    configuration.gracefulShutdownTimeout < configuration.shutdownHandlerTimeout
+  ) {
+    throw new Error(
+      'gracefulShutdownTimeout cannot be lesser than shutdownHandlerTimeout.',
+    );
   }
 
   let serverIsReady = false;
@@ -117,47 +114,39 @@ export const createLightship = async (userConfiguration?: ConfigurationInput): P
   });
 
   app.addHook('onError', (request, reply, error, done) => {
-    log.error({
-      error: serializeError(error),
-    }, 'lightship error');
+    log.error(
+      {
+        error: serializeError(error),
+      },
+      'lightship error',
+    );
 
     done();
   });
 
   app.get('/health', async (request, reply) => {
     if (serverIsShuttingDown) {
-      await reply
-        .code(500)
-        .send(SERVER_IS_SHUTTING_DOWN);
+      await reply.code(500).send(SERVER_IS_SHUTTING_DOWN);
     } else if (serverIsReady) {
-      await reply
-        .send(SERVER_IS_READY);
+      await reply.send(SERVER_IS_READY);
     } else {
-      await reply
-        .code(500)
-        .send(SERVER_IS_NOT_READY);
+      await reply.code(500).send(SERVER_IS_NOT_READY);
     }
   });
 
   app.get('/live', async (request, reply) => {
     if (serverIsShuttingDown) {
-      await reply
-        .code(500)
-        .send(SERVER_IS_SHUTTING_DOWN);
+      await reply.code(500).send(SERVER_IS_SHUTTING_DOWN);
     } else {
-      await reply
-        .send(SERVER_IS_NOT_SHUTTING_DOWN);
+      await reply.send(SERVER_IS_NOT_SHUTTING_DOWN);
     }
   });
 
   app.get('/ready', async (request, reply) => {
     if (isServerReady()) {
-      await reply
-        .send(SERVER_IS_READY);
+      await reply.send(SERVER_IS_READY);
     } else {
-      await reply
-        .code(500)
-        .send(SERVER_IS_NOT_READY);
+      await reply.code(500).send(SERVER_IS_NOT_READY);
     }
   });
 
@@ -186,7 +175,9 @@ export const createLightship = async (userConfiguration?: ConfigurationInput): P
     log.info('signaling that the server is ready');
 
     if (blockingTasks.length > 0) {
-      log.debug('service will not become immediately ready because there are blocking tasks');
+      log.debug(
+        'service will not become immediately ready because there are blocking tasks',
+      );
     }
 
     serverIsReady = true;
@@ -211,7 +202,10 @@ export const createLightship = async (userConfiguration?: ConfigurationInput): P
     log.info('received request to shutdown the service');
 
     if (configuration.shutdownDelay) {
-      log.debug('delaying shutdown handler by %d seconds', configuration.shutdownDelay / 1_000);
+      log.debug(
+        'delaying shutdown handler by %d seconds',
+        configuration.shutdownDelay / 1_000,
+      );
 
       await delay(configuration.shutdownDelay);
     }
@@ -234,11 +228,16 @@ export const createLightship = async (userConfiguration?: ConfigurationInput): P
           log.debug('checking if there are live beacons');
 
           if (beacons.length > 0) {
-            log.info({
-              beacons,
-            } as {}, 'program termination is on hold because there are live beacons');
+            log.info(
+              {
+                beacons,
+              } as {},
+              'program termination is on hold because there are live beacons',
+            );
           } else {
-            log.info('there are no live beacons; proceeding to terminate the Node.js process');
+            log.info(
+              'there are no live beacons; proceeding to terminate the Node.js process',
+            );
 
             eventEmitter.off('beaconStateChange', check);
 
@@ -274,9 +273,12 @@ export const createLightship = async (userConfiguration?: ConfigurationInput): P
       try {
         await shutdownHandler();
       } catch (error) {
-        log.error({
-          error: serializeError(error),
-        }, 'shutdown handler produced an error');
+        log.error(
+          {
+            error: serializeError(error),
+          },
+          'shutdown handler produced an error',
+        );
       }
     }
 
@@ -284,17 +286,19 @@ export const createLightship = async (userConfiguration?: ConfigurationInput): P
       clearTimeout(shutdownHandlerTimeoutId);
     }
 
-    log.debug('all shutdown handlers have run to completion; proceeding to terminate the Node.js process');
+    log.debug(
+      'all shutdown handlers have run to completion; proceeding to terminate the Node.js process',
+    );
 
     void app.close();
 
     setTimeout(() => {
-      log.warn('process did not exit on its own; investigate what is keeping the event loop active');
+      log.warn(
+        'process did not exit on its own; investigate what is keeping the event loop active',
+      );
 
       configuration.terminate();
-    }, 1_000)
-
-      .unref();
+    }, 1_000).unref();
   };
 
   if (modeIsLocal) {
@@ -302,9 +306,12 @@ export const createLightship = async (userConfiguration?: ConfigurationInput): P
   } else {
     for (const signal of configuration.signals) {
       process.on(signal, () => {
-        log.debug({
-          signal,
-        }, 'received a shutdown signal');
+        log.debug(
+          {
+            signal,
+          },
+          'received a shutdown signal',
+        );
 
         void shutdown(false);
       });
@@ -320,9 +327,12 @@ export const createLightship = async (userConfiguration?: ConfigurationInput): P
 
     return {
       die: async () => {
-        log.trace({
-          beacon,
-        } as {}, 'beacon has been killed');
+        log.trace(
+          {
+            beacon,
+          } as {},
+          'beacon has been killed',
+        );
 
         beacons.splice(beacons.indexOf(beacon), 1);
 
@@ -333,15 +343,20 @@ export const createLightship = async (userConfiguration?: ConfigurationInput): P
     };
   };
 
-  void deferredFirstReady.then(() => {
-    log.info('service became available for the first time');
-  }).catch(async (error) => {
-    log.error({
-      error: serializeError(error),
-    }, 'service failed to become available for the first time');
+  void deferredFirstReady
+    .then(() => {
+      log.info('service became available for the first time');
+    })
+    .catch(async (error) => {
+      log.error(
+        {
+          error: serializeError(error),
+        },
+        'service failed to become available for the first time',
+      );
 
-    await shutdown(false);
-  });
+      await shutdown(false);
+    });
 
   return {
     createBeacon,
@@ -352,15 +367,17 @@ export const createLightship = async (userConfiguration?: ConfigurationInput): P
     queueBlockingTask: (blockingTask: BlockingTask) => {
       blockingTasks.push(blockingTask);
 
-      void blockingTask.then(() => {
-        blockingTasks = blockingTasks.filter((maybeTargetBlockingTask) => {
-          return maybeTargetBlockingTask !== blockingTask;
-        });
+      void blockingTask
+        .then(() => {
+          blockingTasks = blockingTasks.filter((maybeTargetBlockingTask) => {
+            return maybeTargetBlockingTask !== blockingTask;
+          });
 
-        if (blockingTasks.length === 0 && serverIsReady === true) {
-          resolveFirstReady();
-        }
-      }).catch(rejectFirstReady);
+          if (blockingTasks.length === 0 && serverIsReady === true) {
+            resolveFirstReady();
+          }
+        })
+        .catch(rejectFirstReady);
     },
     registerShutdownHandler: (shutdownHandler) => {
       shutdownHandlers.push(shutdownHandler);

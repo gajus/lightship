@@ -2,10 +2,10 @@
   "compilerOptions": {
     "allowSyntheticDefaultImports": true,
     "declaration": true,
-    "noEmit": true,
     "esModuleInterop": true,
     "module": "ES2022",
     "moduleResolution": "nodenext",
+    "noEmit": true,
     "noImplicitReturns": true,
     "noUnusedLocals": true,
     "noUnusedParameters": false,

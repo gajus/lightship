@@ -1,15 +1,16 @@
 {
-  "extends": [
-    "canonical",
-    "canonical/typescript",
-    "canonical/node"
+  "extends": "canonical/auto",
+  "ignorePatterns": [
+    "dist",
+    "package-lock.json"
   ],
-  "parserOptions": {
-    "project": "./tsconfig.json"
-  },
-  "rules": {
-    "unicorn/prefer-node-protocol": 0,
-    "import/extensions": 0
-  },
+  "overrides": [
+    {
+      "files": "*.ts",
+      "rules": {
+        "import/no-cycle": 0
+      }
+    }
+  ],
   "root": true
 }

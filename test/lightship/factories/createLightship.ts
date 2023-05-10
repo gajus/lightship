@@ -1,35 +1,26 @@
-import {
-  type AddressInfo,
-} from 'net';
-import test from 'ava';
-import axios from 'axios';
-import delay from 'delay';
-import {
-  stub,
-  spy,
-} from 'sinon';
-import {
-  createLightship,
-} from '../../../src/factories/createLightship.js';
+import { createLightship } from '../../../src/factories/createLightship.js';
 import {
   SERVER_IS_NOT_READY,
   SERVER_IS_NOT_SHUTTING_DOWN,
   SERVER_IS_READY,
   SERVER_IS_SHUTTING_DOWN,
 } from '../../../src/states.js';
-import {
-  type Lightship,
-} from '../../../src/types.js';
+import { type Lightship } from '../../../src/types.js';
+import test from 'ava';
+import axios from 'axios';
+import delay from 'delay';
+import { type AddressInfo } from 'node:net';
+import { spy, stub } from 'sinon';
 
 type ProbeState = {
-  readonly message?: string,
-  readonly status: number,
+  readonly message?: string;
+  readonly status: number;
 };
 
 type ServiceState = {
-  readonly health: ProbeState,
-  readonly live: ProbeState,
-  readonly ready: ProbeState,
+  readonly health: ProbeState;
+  readonly live: ProbeState;
+  readonly ready: ProbeState;
 };
 
 const getLightshipPort = (lightship: Lightship) => {
@@ -38,7 +29,10 @@ const getLightshipPort = (lightship: Lightship) => {
   return address.port;
 };
 
-const getServiceState = async (lightship: Lightship, method: 'GET' | 'HEAD'): Promise<ServiceState> => {
+const getServiceState = async (
+  lightship: Lightship,
+  method: 'GET' | 'HEAD',
+): Promise<ServiceState> => {
   const port = getLightshipPort(lightship);
 
   const health = await axios('http://127.0.0.1:' + port + '/health', {
@@ -349,9 +343,7 @@ test('invoking `shutdown` using a signal causes SERVER_IS_READY', async (t) => {
   const lightship = await createLightship({
     detectKubernetes: false,
     shutdownDelay: 0,
-    signals: [
-      'LIGHTSHIP_TEST',
-    ],
+    signals: ['LIGHTSHIP_TEST'],
     terminate,
   });
 
