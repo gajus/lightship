@@ -22,7 +22,12 @@ Refer to the following Kubernetes documentation for information about the readin
 
 ### Local-mode
 
-If Lightship detects that it is running in a non-Kubernetes environment (e.g. your local machine) then it starts the HTTP service on any available HTTP port. This is done to avoid port collision when multiple services using Lightship are being developed on the same machine. This behaviour can be changed using `detectKubernetes` and `port` configuration.
+If Lightship detects that it is running in a non-Kubernetes environment (e.g. your local machine) then...
+
+* It starts the HTTP service on any available HTTP port. This is done to avoid port collision when multiple services using Lightship are being developed on the same machine.
+* `shutdownDelay` defaults to `0`, i.e. immediately proceed to execute the shutdown routine.
+
+Detection of the local-mode can be overridden by setting `{detectKubernetes: false}`.
 
 ### `/health`
 

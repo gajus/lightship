@@ -83,6 +83,19 @@ export default async (userConfiguration?: ConfigurationInput): Promise<Lightship
     ...userConfiguration,
   };
 
+  const modeIsLocal = configuration.detectKubernetes === true && isKubernetes() === false;
+
+  if (modeIsLocal) {
+    log.info('running in local mode');
+
+    if (userConfiguration?.shutdownDelay === undefined) {
+      log.info('detected local mode and shutdownDelay is not configured, defaulting shutdownDelay to 0ms');
+
+      // @ts-expect-error overriding read-only value
+      configuration.shutdownDelay = 0;
+    }
+  }
+
   if (configuration.gracefulShutdownTimeout < configuration.shutdownHandlerTimeout) {
     throw new Error('gracefulShutdownTimeout cannot be lesser than shutdownHandlerTimeout.');
   }
@@ -150,8 +163,6 @@ export default async (userConfiguration?: ConfigurationInput): Promise<Lightship
         .send(SERVER_IS_NOT_READY);
     }
   });
-
-  const modeIsLocal = configuration.detectKubernetes === true && isKubernetes() === false;
 
   await app.listen({
     host: '0.0.0.0',
