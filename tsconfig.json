@@ -3,18 +3,15 @@
     "allowSyntheticDefaultImports": true,
     "declaration": true,
     "esModuleInterop": true,
-    "lib": [
-      "es2019"
-    ],
-    "module": "commonjs",
-    "moduleResolution": "node",
+    "module": "ES2022",
+    "moduleResolution": "nodenext",
     "noImplicitReturns": true,
     "noUnusedLocals": true,
     "noUnusedParameters": false,
     "outDir": "dist",
     "skipLibCheck": true,
     "strict": true,
-    "target": "es2019"
+    "target": "ES2022"
   },
   "exclude": [
     "dist",
