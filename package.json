@@ -16,7 +16,6 @@
     ]
   },
   "dependencies": {
-    "@sentry/node": "^6.16.1",
     "delay": "^5.0.0",
     "fastify": "^4.10.2",
     "roarr": "^7.14.0",

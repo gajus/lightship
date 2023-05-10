@@ -3,9 +3,6 @@
 import {
   EventEmitter,
 } from 'events';
-import {
-  captureException,
-} from '@sentry/node';
 import delay from 'delay';
 import createFastify from 'fastify';
 import {
@@ -118,11 +115,9 @@ export default async (userConfiguration?: ConfigurationInput): Promise<Lightship
   });
 
   app.addHook('onError', (request, reply, error, done) => {
-    // Only send Sentry errors when not in development
-    // eslint-disable-next-line node/no-process-env
-    if (process.env.NODE_ENV !== 'development') {
-      captureException(error);
-    }
+    log.error({
+      error: serializeError(error),
+    }, 'lightship error');
 
     done();
   });
