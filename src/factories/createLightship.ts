@@ -8,13 +8,15 @@ import createFastify from 'fastify';
 import {
   serializeError,
 } from 'serialize-error';
-import Logger from '../Logger';
+import {
+  Logger,
+} from '../Logger.js';
 import {
   SERVER_IS_NOT_READY,
   SERVER_IS_NOT_SHUTTING_DOWN,
   SERVER_IS_READY,
   SERVER_IS_SHUTTING_DOWN,
-} from '../states';
+} from '../states.js';
 import {
   type BeaconContext,
   type BlockingTask,
@@ -23,10 +25,10 @@ import {
   type Lightship,
   type ShutdownHandler,
   type BeaconController,
-} from '../types';
+} from '../types.js';
 import {
   isKubernetes,
-} from '../utilities';
+} from '../utilities/isKubernetes.js';
 
 const log = Logger.child({
   namespace: 'factories/createLightship',
@@ -58,7 +60,7 @@ type Beacon = {
   context: BeaconContext,
 };
 
-export default async (userConfiguration?: ConfigurationInput): Promise<Lightship> => {
+export const createLightship = async (userConfiguration?: ConfigurationInput): Promise<Lightship> => {
   let blockingTasks: BlockingTask[] = [];
 
   let resolveFirstReady: () => void;

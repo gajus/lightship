@@ -1,6 +1,6 @@
 import {
   type State,
-} from './types';
+} from './types.js';
 
 const createState = <TState extends State>(subject: TState): TState => {
   return subject;

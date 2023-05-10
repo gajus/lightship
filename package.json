@@ -17,7 +17,7 @@
   },
   "dependencies": {
     "delay": "^5.0.0",
-    "fastify": "^4.10.2",
+    "fastify": "^4.17.0",
     "roarr": "^7.14.0",
     "serialize-error": "^8.1.0"
   },
@@ -31,8 +31,8 @@
     "@types/node": "^18.11.9",
     "@types/roarr": "^2.14.3",
     "@types/sinon": "^10.0.13",
-    "ava": "^3.15.0",
-    "axios": "^0.24.0",
+    "ava": "^5.2.0",
+    "axios": "^1.4.0",
     "coveralls": "^3.1.1",
     "eslint": "^8.28.0",
     "eslint-config-canonical": "^37.0.3",
@@ -44,13 +44,17 @@
     "ts-node": "^10.9.1",
     "typescript": "^4.9.3"
   },
+  "files": [
+    "src",
+    "dist"
+  ],
   "engines": {
     "node": ">=18"
   },
   "exports": {
     ".": {
-      "import": "./dist/src/index.js",
-      "require": "./dist/src/index.js"
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
     }
   },
   "husky": {
@@ -69,7 +73,7 @@
     "url": "https://github.com/gajus/lightship"
   },
   "scripts": {
-    "build": "rm -fr ./dist && tsc",
+    "build": "rm -fr ./dist && tsc --project ./tsconfig.build.json",
     "generate-readme": "gitdown ./.README/README.md --output-file ./README.md",
     "lint": "eslint ./src ./test",
     "test": "NODE_ENV=test ava --verbose --serial",

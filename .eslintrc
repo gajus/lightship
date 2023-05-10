@@ -8,7 +8,8 @@
     "project": "./tsconfig.json"
   },
   "rules": {
-    "unicorn/prefer-node-protocol": 0
+    "unicorn/prefer-node-protocol": 0,
+    "import/extensions": 0
   },
   "root": true
 }

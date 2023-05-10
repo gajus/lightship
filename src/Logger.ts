@@ -2,6 +2,6 @@ import {
   Roarr,
 } from 'roarr';
 
-export default Roarr.child({
+export const Logger = Roarr.child({
   package: 'lightship',
 });

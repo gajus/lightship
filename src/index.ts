@@ -1,8 +1,8 @@
 export {
-  default as createLightship,
-} from './factories/createLightship';
+  createLightship,
+} from './factories/createLightship.js';
 export type {
   Lightship,
   ConfigurationInput,
   BeaconController,
-} from './types';
+} from './types.js';
