@@ -55,6 +55,7 @@
     "kubernetes"
   ],
   "license": "BSD-3-Clause",
+  "main": "./dist/index.js",
   "name": "lightship",
   "repository": {
     "type": "git",
@@ -67,5 +68,6 @@
     "test": "NODE_OPTIONS='--loader=tsx --no-warnings' ava --verbose --serial"
   },
   "type": "module",
+  "types": "./dist/index.d.ts",
   "version": "1.0.0"
 }
