@@ -43,8 +43,9 @@
   },
   "exports": {
     ".": {
-      "import": "./dist/index.js",
-      "types": "./dist/index.d.ts"
+      "import": "./dist/esm/index.js",
+      "require": "./dist/cjs/index.js",
+      "types": "./dist/esm/index.d.ts"
     }
   },
   "files": [
@@ -62,7 +63,7 @@
     "url": "https://github.com/gajus/lightship"
   },
   "scripts": {
-    "build": "rm -fr ./dist && tsc --project ./tsconfig.build.json",
+    "build": "rm -fr ./dist && tsc --project ./tsconfig.build-esm.json && tsc --project ./tsconfig.build-cjs.json",
     "lint": "eslint . && tsc",
     "prepare": "husky install",
     "test": "NODE_OPTIONS='--loader=tsx --no-warnings' ava --verbose --serial"
