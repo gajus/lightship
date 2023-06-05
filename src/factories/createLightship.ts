@@ -301,21 +301,17 @@ export const createLightship = async (
     }, 1_000).unref();
   };
 
-  if (modeIsLocal) {
-    log.warn('shutdown handlers are not used in the local mode');
-  } else {
-    for (const signal of configuration.signals) {
-      process.on(signal, () => {
-        log.debug(
-          {
-            signal,
-          },
-          'received a shutdown signal',
-        );
+  for (const signal of configuration.signals) {
+    process.on(signal, () => {
+      log.debug(
+        {
+          signal,
+        },
+        'received a shutdown signal',
+      );
 
-        void shutdown(false);
-      });
-    }
+      void shutdown(false);
+    });
   }
 
   const createBeacon = (context?: BeaconContext): BeaconController => {
