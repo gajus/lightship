@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "module": "CommonJS",
     "noEmit": false,
     "outDir": "dist/cjs"
   },
