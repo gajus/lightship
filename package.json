@@ -4,42 +4,30 @@
     "name": "Gajus Kuizinas",
     "url": "http://gajus.com"
   },
-  "ava": {
-    "extensions": {
-      "ts": "module"
-    }
-  },
   "dependencies": {
-    "delay": "^5.0.0",
-    "fastify": "^4.17.0",
-    "roarr": "^7.15.0",
-    "serialize-error": "^11.0.0"
+    "delay": "^7.0.0",
+    "fastify": "^5.7.4",
+    "roarr": "^7.21.4",
+    "serialize-error": "^13.0.1"
   },
   "description": "Abstracts readiness, liveness and startup checks and graceful shutdown of Node.js services running in Kubernetes.",
   "devDependencies": {
-    "@istanbuljs/nyc-config-typescript": "^1.0.2",
     "@semantic-release/commit-analyzer": "^9.0.2",
     "@semantic-release/github": "^8.0.6",
     "@semantic-release/npm": "^9.0.1",
-    "@types/http-terminator": "^2.0.2",
-    "@types/node": "^18.11.9",
-    "@types/roarr": "^2.14.3",
-    "@types/sinon": "^10.0.13",
-    "ava": "^5.2.0",
-    "axios": "^1.4.0",
-    "coveralls": "^3.1.1",
+    "@types/node": "^22.19.11",
+    "@types/roarr": "^2.14.7",
+    "@vitest/coverage-v8": "^4.0.18",
+    "@vitest/eslint-plugin": "^1.6.9",
     "eslint": "^8.40.0",
     "eslint-config-canonical": "^41.0.4",
     "husky": "^5.0.0",
-    "nyc": "^15.1.0",
     "semantic-release": "^19.0.5",
-    "sinon": "^14.0.2",
-    "ts-node": "^10.9.1",
-    "tsx": "^3.12.7",
-    "typescript": "^5.2.2"
+    "typescript": "^5.2.2",
+    "vitest": "^4.0.18"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=22.13.0"
   },
   "exports": {
     ".": {
@@ -66,10 +54,14 @@
   "scripts": {
     "build": "rm -fr ./dist && tsc --project ./tsconfig.build-esm.json && tsc --project ./tsconfig.build-cjs.json",
     "lint": "eslint . && tsc",
+    "lint:fix": "eslint . --fix && tsc",
     "prepare": "husky install",
-    "test": "NODE_OPTIONS='--loader=tsx --no-warnings' ava --verbose --serial"
+    "test": "vitest run --coverage"
   },
   "type": "module",
   "types": "./dist/esm/index.d.ts",
-  "version": "1.0.0"
+  "version": "1.0.0",
+  "volta": {
+    "node": "22.22.0"
+  }
 }
