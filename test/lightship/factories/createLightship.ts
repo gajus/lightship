@@ -6,11 +6,9 @@ import {
   SERVER_IS_SHUTTING_DOWN,
 } from '../../../src/states.js';
 import { type Lightship } from '../../../src/types.js';
-import test from 'ava';
-import axios from 'axios';
 import delay from 'delay';
 import { type AddressInfo } from 'node:net';
-import { spy, stub } from 'sinon';
+import { expect, test, vi } from 'vitest';
 
 type ProbeState = {
   readonly message?: string;
@@ -34,95 +32,87 @@ const getServiceState = async (
   method: 'GET' | 'HEAD',
 ): Promise<ServiceState> => {
   const port = getLightshipPort(lightship);
+  const base = 'http://127.0.0.1:' + port;
 
-  const health = await axios('http://127.0.0.1:' + port + '/health', {
-    method,
-    validateStatus: () => {
-      return true;
-    },
-  });
+  const [healthResponse, liveResponse, readyResponse] = await Promise.all([
+    fetch(base + '/health', { method }),
+    fetch(base + '/live', { method }),
+    fetch(base + '/ready', { method }),
+  ]);
 
-  const live = await axios('http://127.0.0.1:' + port + '/live', {
-    method,
-    validateStatus: () => {
-      return true;
-    },
-  });
-
-  const ready = await axios('http://127.0.0.1:' + port + '/ready', {
-    method,
-    validateStatus: () => {
-      return true;
-    },
-  });
+  const [healthBody, liveBody, readyBody] = await Promise.all([
+    healthResponse.text(),
+    liveResponse.text(),
+    readyResponse.text(),
+  ]);
 
   return {
     health: {
-      message: health.data,
-      status: health.status,
+      message: healthBody,
+      status: healthResponse.status,
     },
     live: {
-      message: live.data,
-      status: live.status,
+      message: liveBody,
+      status: liveResponse.status,
     },
     ready: {
-      message: ready.data,
-      status: ready.status,
+      message: readyBody,
+      status: readyResponse.status,
     },
   };
 };
 
-test('server starts in SERVER_IS_NOT_READY state', async (t) => {
-  const terminate = stub();
+test('server starts in SERVER_IS_NOT_READY state', async () => {
+  const terminate = vi.fn();
 
   const lightship = await createLightship({
     shutdownDelay: 0,
     terminate,
   });
 
-  t.is(lightship.isServerReady(), false);
-  t.is(lightship.isServerShuttingDown(), false);
+  expect(lightship.isServerReady()).toBe(false);
+  expect(lightship.isServerShuttingDown()).toBe(false);
 
   const serviceState = await getServiceState(lightship, 'GET');
 
-  t.is(serviceState.health.status, 500);
-  t.is(serviceState.health.message, SERVER_IS_NOT_READY);
+  expect(serviceState.health.status).toBe(500);
+  expect(serviceState.health.message).toBe(SERVER_IS_NOT_READY);
 
-  t.is(serviceState.live.status, 200);
-  t.is(serviceState.live.message, SERVER_IS_NOT_SHUTTING_DOWN);
+  expect(serviceState.live.status).toBe(200);
+  expect(serviceState.live.message).toBe(SERVER_IS_NOT_SHUTTING_DOWN);
 
-  t.is(serviceState.ready.status, 500);
-  t.is(serviceState.ready.message, SERVER_IS_NOT_READY);
+  expect(serviceState.ready.status).toBe(500);
+  expect(serviceState.ready.message).toBe(SERVER_IS_NOT_READY);
 
   await lightship.shutdown();
 
-  t.is(terminate.called, false);
+  expect(terminate).not.toHaveBeenCalled();
 });
 
-test('server starts in SERVER_IS_NOT_READY state (HEAD)', async (t) => {
-  const terminate = stub();
+test('server starts in SERVER_IS_NOT_READY state (HEAD)', async () => {
+  const terminate = vi.fn();
 
   const lightship = await createLightship({
     shutdownDelay: 0,
     terminate,
   });
 
-  t.is(lightship.isServerReady(), false);
-  t.is(lightship.isServerShuttingDown(), false);
+  expect(lightship.isServerReady()).toBe(false);
+  expect(lightship.isServerShuttingDown()).toBe(false);
 
   const serviceState = await getServiceState(lightship, 'HEAD');
 
-  t.is(serviceState.health.status, 500);
-  t.is(serviceState.live.status, 200);
-  t.is(serviceState.ready.status, 500);
+  expect(serviceState.health.status).toBe(500);
+  expect(serviceState.live.status).toBe(200);
+  expect(serviceState.ready.status).toBe(500);
 
   await lightship.shutdown();
 
-  t.is(terminate.called, false);
+  expect(terminate).not.toHaveBeenCalled();
 });
 
-test('calling `signalReady` changes server state to SERVER_IS_READY', async (t) => {
-  const terminate = stub();
+test('calling `signalReady` changes server state to SERVER_IS_READY', async () => {
+  const terminate = vi.fn();
 
   const lightship = await createLightship({
     shutdownDelay: 0,
@@ -131,27 +121,27 @@ test('calling `signalReady` changes server state to SERVER_IS_READY', async (t) 
 
   lightship.signalReady();
 
-  t.is(lightship.isServerReady(), true);
-  t.is(lightship.isServerShuttingDown(), false);
+  expect(lightship.isServerReady()).toBe(true);
+  expect(lightship.isServerShuttingDown()).toBe(false);
 
   const serviceState = await getServiceState(lightship, 'GET');
 
-  t.is(serviceState.health.status, 200);
-  t.is(serviceState.health.message, SERVER_IS_READY);
+  expect(serviceState.health.status).toBe(200);
+  expect(serviceState.health.message).toBe(SERVER_IS_READY);
 
-  t.is(serviceState.live.status, 200);
-  t.is(serviceState.live.message, SERVER_IS_NOT_SHUTTING_DOWN);
+  expect(serviceState.live.status).toBe(200);
+  expect(serviceState.live.message).toBe(SERVER_IS_NOT_SHUTTING_DOWN);
 
-  t.is(serviceState.ready.status, 200);
-  t.is(serviceState.ready.message, SERVER_IS_READY);
+  expect(serviceState.ready.status).toBe(200);
+  expect(serviceState.ready.message).toBe(SERVER_IS_READY);
 
   await lightship.shutdown();
 
-  t.is(terminate.called, false);
+  expect(terminate).not.toHaveBeenCalled();
 });
 
-test('calling `signalReady` changes server state to SERVER_IS_READY (HEAD)', async (t) => {
-  const terminate = stub();
+test('calling `signalReady` changes server state to SERVER_IS_READY (HEAD)', async () => {
+  const terminate = vi.fn();
 
   const lightship = await createLightship({
     shutdownDelay: 0,
@@ -160,22 +150,22 @@ test('calling `signalReady` changes server state to SERVER_IS_READY (HEAD)', asy
 
   lightship.signalReady();
 
-  t.is(lightship.isServerReady(), true);
-  t.is(lightship.isServerShuttingDown(), false);
+  expect(lightship.isServerReady()).toBe(true);
+  expect(lightship.isServerShuttingDown()).toBe(false);
 
   const serviceState = await getServiceState(lightship, 'GET');
 
-  t.is(serviceState.health.status, 200);
-  t.is(serviceState.live.status, 200);
-  t.is(serviceState.ready.status, 200);
+  expect(serviceState.health.status).toBe(200);
+  expect(serviceState.live.status).toBe(200);
+  expect(serviceState.ready.status).toBe(200);
 
   await lightship.shutdown();
 
-  t.is(terminate.called, false);
+  expect(terminate).not.toHaveBeenCalled();
 });
 
-test('returns service state multiple time', async (t) => {
-  const terminate = stub();
+test('returns service state multiple time', async () => {
+  const terminate = vi.fn();
 
   const lightship = await createLightship({
     shutdownDelay: 0,
@@ -188,11 +178,11 @@ test('returns service state multiple time', async (t) => {
 
   await lightship.shutdown();
 
-  t.is(terminate.called, false);
+  expect(terminate).not.toHaveBeenCalled();
 });
 
-test('calling `signalReady` resolves `whenFirstReady`', async (t) => {
-  const terminate = stub();
+test('calling `signalReady` resolves `whenFirstReady`', async () => {
+  const terminate = vi.fn();
 
   const lightship = await createLightship({
     shutdownDelay: 0,
@@ -207,11 +197,13 @@ test('calling `signalReady` resolves `whenFirstReady`', async (t) => {
 
   await lightship.whenFirstReady();
 
-  t.true(Date.now() - startTime > 90);
+  expect(Date.now() - startTime).toBeGreaterThan(90);
+
+  await lightship.shutdown();
 });
 
-test('`queueBlockingTask` forces service into SERVER_IS_NOT_READY until blocking tasks are resolved', async (t) => {
-  const terminate = stub();
+test('`queueBlockingTask` forces service into SERVER_IS_NOT_READY until blocking tasks are resolved', async () => {
+  const terminate = vi.fn();
 
   const lightship = await createLightship({
     shutdownDelay: 0,
@@ -228,7 +220,7 @@ test('`queueBlockingTask` forces service into SERVER_IS_NOT_READY until blocking
 
   lightship.signalReady();
 
-  t.is(lightship.isServerReady(), false);
+  expect(lightship.isServerReady()).toBe(false);
 
   if (resolveBlockingTask) {
     resolveBlockingTask();
@@ -236,11 +228,13 @@ test('`queueBlockingTask` forces service into SERVER_IS_NOT_READY until blocking
 
   await delay(0);
 
-  t.is(lightship.isServerReady(), true);
+  expect(lightship.isServerReady()).toBe(true);
+
+  await lightship.shutdown();
 });
 
-test('`whenFirstReady` resolves when all blocking tasks are resolved', async (t) => {
-  const terminate = stub();
+test('`whenFirstReady` resolves when all blocking tasks are resolved', async () => {
+  const terminate = vi.fn();
 
   const lightship = await createLightship({
     shutdownDelay: 0,
@@ -263,11 +257,13 @@ test('`whenFirstReady` resolves when all blocking tasks are resolved', async (t)
 
   await lightship.whenFirstReady();
 
-  t.true(Date.now() - startTime > 190);
+  expect(Date.now() - startTime).toBeGreaterThan(190);
+
+  await lightship.shutdown();
 });
 
-test('calling `signalNotReady` changes server state to SERVER_IS_NOT_READY', async (t) => {
-  const terminate = stub();
+test('calling `signalNotReady` changes server state to SERVER_IS_NOT_READY', async () => {
+  const terminate = vi.fn();
 
   const lightship = await createLightship({
     shutdownDelay: 0,
@@ -277,27 +273,27 @@ test('calling `signalNotReady` changes server state to SERVER_IS_NOT_READY', asy
   lightship.signalReady();
   lightship.signalNotReady();
 
-  t.is(lightship.isServerReady(), false);
-  t.is(lightship.isServerShuttingDown(), false);
+  expect(lightship.isServerReady()).toBe(false);
+  expect(lightship.isServerShuttingDown()).toBe(false);
 
   const serviceState = await getServiceState(lightship, 'GET');
 
-  t.is(serviceState.health.status, 500);
-  t.is(serviceState.health.message, SERVER_IS_NOT_READY);
+  expect(serviceState.health.status).toBe(500);
+  expect(serviceState.health.message).toBe(SERVER_IS_NOT_READY);
 
-  t.is(serviceState.live.status, 200);
-  t.is(serviceState.live.message, SERVER_IS_NOT_SHUTTING_DOWN);
+  expect(serviceState.live.status).toBe(200);
+  expect(serviceState.live.message).toBe(SERVER_IS_NOT_SHUTTING_DOWN);
 
-  t.is(serviceState.ready.status, 500);
-  t.is(serviceState.ready.message, SERVER_IS_NOT_READY);
+  expect(serviceState.ready.status).toBe(500);
+  expect(serviceState.ready.message).toBe(SERVER_IS_NOT_READY);
 
   await lightship.shutdown();
 
-  t.is(terminate.called, false);
+  expect(terminate).not.toHaveBeenCalled();
 });
 
-test('calling `shutdown` changes server state to SERVER_IS_SHUTTING_DOWN', async (t) => {
-  const terminate = stub();
+test('calling `shutdown` changes server state to SERVER_IS_SHUTTING_DOWN', async () => {
+  const terminate = vi.fn();
 
   const lightship = await createLightship({
     shutdownDelay: 0,
@@ -314,19 +310,19 @@ test('calling `shutdown` changes server state to SERVER_IS_SHUTTING_DOWN', async
 
   void lightship.shutdown();
 
-  t.is(lightship.isServerReady(), false);
-  t.is(lightship.isServerShuttingDown(), true);
+  expect(lightship.isServerReady()).toBe(false);
+  expect(lightship.isServerShuttingDown()).toBe(true);
 
   const serviceState = await getServiceState(lightship, 'GET');
 
-  t.is(serviceState.health.status, 500);
-  t.is(serviceState.health.message, SERVER_IS_SHUTTING_DOWN);
+  expect(serviceState.health.status).toBe(500);
+  expect(serviceState.health.message).toBe(SERVER_IS_SHUTTING_DOWN);
 
-  t.is(serviceState.live.status, 500);
-  t.is(serviceState.live.message, SERVER_IS_SHUTTING_DOWN);
+  expect(serviceState.live.status).toBe(500);
+  expect(serviceState.live.message).toBe(SERVER_IS_SHUTTING_DOWN);
 
-  t.is(serviceState.ready.status, 500);
-  t.is(serviceState.ready.message, SERVER_IS_NOT_READY);
+  expect(serviceState.ready.status).toBe(500);
+  expect(serviceState.ready.message).toBe(SERVER_IS_NOT_READY);
 
   if (!shutdown) {
     throw new Error('Unexpected state.');
@@ -334,11 +330,11 @@ test('calling `shutdown` changes server state to SERVER_IS_SHUTTING_DOWN', async
 
   shutdown();
 
-  t.is(terminate.called, false);
+  expect(terminate).not.toHaveBeenCalled();
 });
 
-test('invoking `shutdown` using a signal causes SERVER_IS_READY', async (t) => {
-  const terminate = stub();
+test('invoking `shutdown` using a signal causes SERVER_IS_READY', async () => {
+  const terminate = vi.fn();
 
   const lightship = await createLightship({
     detectKubernetes: false,
@@ -350,25 +346,25 @@ test('invoking `shutdown` using a signal causes SERVER_IS_READY', async (t) => {
   // @ts-expect-error intentional dummy event
   process.emit('LIGHTSHIP_TEST');
 
-  t.is(lightship.isServerReady(), false);
-  t.is(lightship.isServerShuttingDown(), true);
+  expect(lightship.isServerReady()).toBe(false);
+  expect(lightship.isServerShuttingDown()).toBe(true);
 });
 
-test('error thrown from within a shutdown handler does not interrupt the shutdown sequence', async (t) => {
-  const terminate = stub();
+test('error thrown from within a shutdown handler does not interrupt the shutdown sequence', async () => {
+  const terminate = vi.fn();
 
   const lightship = await createLightship({
     shutdownDelay: 0,
     terminate,
   });
 
-  const shutdownHandler0 = spy(async () => {
+  const shutdownHandler0 = vi.fn(async () => {
     throw new Error('test');
   });
 
   let shutdown: (() => void) | undefined;
 
-  const shutdownHandler1 = spy(async () => {
+  const shutdownHandler1 = vi.fn(async () => {
     await new Promise<void>((resolve) => {
       shutdown = resolve;
     });
@@ -387,14 +383,14 @@ test('error thrown from within a shutdown handler does not interrupt the shutdow
 
   shutdown();
 
-  t.is(shutdownHandler0.callCount, 1);
-  t.is(shutdownHandler1.callCount, 1);
+  expect(shutdownHandler0).toHaveBeenCalledTimes(1);
+  expect(shutdownHandler1).toHaveBeenCalledTimes(1);
 
-  t.is(terminate.called, false);
+  expect(terminate).not.toHaveBeenCalled();
 });
 
-test('calling `shutdown` multiple times results in shutdown handlers called once', async (t) => {
-  const terminate = stub();
+test('calling `shutdown` multiple times results in shutdown handlers called once', async () => {
+  const terminate = vi.fn();
 
   const lightship = await createLightship({
     shutdownDelay: 0,
@@ -403,7 +399,7 @@ test('calling `shutdown` multiple times results in shutdown handlers called once
 
   let shutdown: (() => void) | undefined;
 
-  const shutdownHandler = spy(async () => {
+  const shutdownHandler = vi.fn(async () => {
     await new Promise<void>((resolve) => {
       shutdown = resolve;
     });
@@ -411,15 +407,15 @@ test('calling `shutdown` multiple times results in shutdown handlers called once
 
   lightship.registerShutdownHandler(shutdownHandler);
 
-  t.is(shutdownHandler.callCount, 0);
+  expect(shutdownHandler).not.toHaveBeenCalled();
 
   void lightship.shutdown();
 
-  t.is(shutdownHandler.callCount, 1);
+  expect(shutdownHandler).toHaveBeenCalledTimes(1);
 
   void lightship.shutdown();
 
-  t.is(shutdownHandler.callCount, 1);
+  expect(shutdownHandler).toHaveBeenCalledTimes(1);
 
   if (!shutdown) {
     throw new Error('Unexpected state.');
@@ -427,11 +423,11 @@ test('calling `shutdown` multiple times results in shutdown handlers called once
 
   shutdown();
 
-  t.is(terminate.called, false);
+  expect(terminate).not.toHaveBeenCalled();
 });
 
-test('presence of live beacons suspend the shutdown routine', async (t) => {
-  const terminate = stub();
+test('presence of live beacons suspend the shutdown routine', async () => {
+  const terminate = vi.fn();
 
   const lightship = await createLightship({
     shutdownDelay: 0,
@@ -440,7 +436,7 @@ test('presence of live beacons suspend the shutdown routine', async (t) => {
 
   let shutdown: (() => void) | undefined;
 
-  const shutdownHandler = spy(async () => {
+  const shutdownHandler = vi.fn(async () => {
     await new Promise<void>((resolve) => {
       shutdown = resolve;
     });
@@ -450,15 +446,15 @@ test('presence of live beacons suspend the shutdown routine', async (t) => {
 
   const beacon = lightship.createBeacon();
 
-  t.is(shutdownHandler.callCount, 0);
+  expect(shutdownHandler).not.toHaveBeenCalled();
 
   void lightship.shutdown();
 
-  t.is(shutdownHandler.callCount, 0);
+  expect(shutdownHandler).not.toHaveBeenCalled();
 
   await beacon.die();
 
-  t.is(shutdownHandler.callCount, 1);
+  expect(shutdownHandler).toHaveBeenCalledTimes(1);
 
   if (!shutdown) {
     throw new Error('Unexpected state.');
@@ -466,11 +462,11 @@ test('presence of live beacons suspend the shutdown routine', async (t) => {
 
   shutdown();
 
-  t.is(terminate.called, false);
+  expect(terminate).not.toHaveBeenCalled();
 });
 
-test('delays shutdown handlers', async (t) => {
-  const terminate = stub();
+test('delays shutdown handlers', async () => {
+  const terminate = vi.fn();
 
   const lightship = await createLightship({
     shutdownDelay: 1_000,
@@ -479,7 +475,7 @@ test('delays shutdown handlers', async (t) => {
 
   let shutdown: (() => void) | undefined;
 
-  const shutdownHandler = spy(async () => {
+  const shutdownHandler = vi.fn(async () => {
     await new Promise<void>((resolve) => {
       shutdown = resolve;
     });
@@ -491,11 +487,11 @@ test('delays shutdown handlers', async (t) => {
 
   await delay(500);
 
-  t.is(shutdownHandler.callCount, 0);
+  expect(shutdownHandler).not.toHaveBeenCalled();
 
   await delay(1_000);
 
-  t.is(shutdownHandler.callCount, 1);
+  expect(shutdownHandler).toHaveBeenCalledTimes(1);
 
   if (!shutdown) {
     throw new Error('Unexpected state.');
@@ -503,11 +499,11 @@ test('delays shutdown handlers', async (t) => {
 
   shutdown();
 
-  t.is(terminate.called, false);
+  expect(terminate).not.toHaveBeenCalled();
 });
 
-test('errors produced by blocking tasks causes a service shutdown', async (t) => {
-  const terminate = stub();
+test('errors produced by blocking tasks causes a service shutdown', async () => {
+  const terminate = vi.fn();
 
   const lightship = await createLightship({
     shutdownDelay: 0,
@@ -524,7 +520,7 @@ test('errors produced by blocking tasks causes a service shutdown', async (t) =>
 
   lightship.signalReady();
 
-  t.is(lightship.isServerReady(), false);
+  expect(lightship.isServerReady()).toBe(false);
 
   if (rejectBlockingTask) {
     rejectBlockingTask();
@@ -532,6 +528,6 @@ test('errors produced by blocking tasks causes a service shutdown', async (t) =>
 
   await delay(0);
 
-  t.is(lightship.isServerShuttingDown(), true);
-  t.is(lightship.isServerReady(), false);
+  expect(lightship.isServerShuttingDown()).toBe(true);
+  expect(lightship.isServerReady()).toBe(false);
 });

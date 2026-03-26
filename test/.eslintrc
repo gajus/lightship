@@ -1,8 +1,5 @@
 {
   "extends": [
-    "canonical/ava"
-  ],
-  "rules": {
-    "ava/max-asserts": 0
-  }
+    "plugin:@vitest/legacy-recommended"
+  ]
 }
