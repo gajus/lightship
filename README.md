@@ -9,8 +9,6 @@
 
 Abstracts readiness, liveness and startup checks and graceful shutdown of Node.js services running in Kubernetes.
 
-{"gitdown": "contents"}
-
 ## Behaviour
 
 Creates a HTTP service used to check [container probes](https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/#container-probes).
