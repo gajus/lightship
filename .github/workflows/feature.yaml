@@ -5,11 +5,11 @@ jobs:
     name: Test
     steps:
       - name: setup repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
       - name: setup node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v6
         with:
           node-version: "22"
       - run: npm ci
