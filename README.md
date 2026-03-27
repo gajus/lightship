@@ -1,11 +1,8 @@
 # Lightship 🚢
 
-[![Coveralls](https://img.shields.io/coveralls/gajus/lightship.svg?style=flat-square)](https://coveralls.io/github/gajus/lightship)
 [![NPM version](http://img.shields.io/npm/v/lightship.svg?style=flat-square)](https://www.npmjs.org/package/lightship)
 [![Canonical Code Style](https://img.shields.io/badge/code%20style-canonical-blue.svg?style=flat-square)](https://github.com/gajus/canonical)
 [![Twitter Follow](https://img.shields.io/twitter/follow/kuizinas.svg?style=social&label=Follow)](https://twitter.com/kuizinas)
-
-(Please read [Best practices](#best-practices) section.)
 
 Abstracts readiness, liveness and startup checks and graceful shutdown of Node.js services running in Kubernetes.
 
