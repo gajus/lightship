@@ -3,6 +3,11 @@ jobs:
     runs-on: ubuntu-latest
     environment: release
     name: Test
+    permissions:
+      contents: write
+      id-token: write
+      issues: write
+      pull-requests: write
     steps:
       - name: setup repository
         uses: actions/checkout@v6
