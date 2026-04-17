@@ -6,7 +6,7 @@
   },
   "dependencies": {
     "delay": "^7.0.0",
-    "fastify": "^5.7.4",
+    "fastify": "^5.8.5",
     "roarr": "^7.21.4",
     "serialize-error": "^13.0.1"
   },
@@ -47,6 +47,10 @@
   "main": "./dist/cjs/index.js",
   "module": "./dist/esm/index.js",
   "name": "lightship",
+  "overrides": {
+    "cookie": ">=0.7.0",
+    "fast-xml-parser": ">=5.5.7"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/gajus/lightship"
