@@ -47,10 +47,6 @@
   "main": "./dist/cjs/index.js",
   "module": "./dist/esm/index.js",
   "name": "lightship",
-  "overrides": {
-    "cookie": ">=0.7.0",
-    "fast-xml-parser": ">=5.5.7"
-  },
   "repository": {
     "type": "git",
     "url": "https://github.com/gajus/lightship"
