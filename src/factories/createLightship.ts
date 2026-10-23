@@ -150,10 +150,12 @@ export const createLightship = async (
     }
   });
 
-  await app.listen({
+  const address = await app.listen({
     host: '0.0.0.0',
     port: modeIsLocal ? 0 : configuration.port,
   });
+
+  log.info('lightship service is listening on %s', address);
 
   const signalNotReady = () => {
     if (serverIsReady === false) {

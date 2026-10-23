@@ -22,6 +22,8 @@ If Lightship detects that it is running in a non-Kubernetes environment (e.g. yo
 * It starts the HTTP service on any available HTTP port. This is done to avoid port collision when multiple services using Lightship are being developed on the same machine.
 * `shutdownDelay` defaults to `0`, i.e. immediately proceed to execute the shutdown routine.
 
+The address of the HTTP service is included in the [logs](#logging). You can also get the port using `lightship.server.address().port`.
+
 Detection of the local-mode can be overridden by setting `{detectKubernetes: false}`.
 
 ### `/health`
