@@ -52,7 +52,7 @@
     "url": "https://github.com/gajus/lightship"
   },
   "scripts": {
-    "build": "rm -fr ./dist && tsc --project ./tsconfig.build-esm.json && tsc --project ./tsconfig.build-cjs.json",
+    "build": "rm -fr ./dist && tsc --project ./tsconfig.build-esm.json && tsc --project ./tsconfig.build-cjs.json && echo '{\"type\":\"commonjs\"}' > ./dist/cjs/package.json",
     "lint": "eslint . && tsc",
     "lint:fix": "eslint . --fix && tsc",
     "prepare": "husky install",
