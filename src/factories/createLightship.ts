@@ -323,6 +323,19 @@ export const createLightship = async (
 
     return {
       die: async () => {
+        const beaconIndex = beacons.indexOf(beacon);
+
+        if (beaconIndex === -1) {
+          log.warn(
+            {
+              beacon,
+            } as {},
+            'beacon has already been killed',
+          );
+
+          return;
+        }
+
         log.trace(
           {
             beacon,
@@ -330,7 +343,7 @@ export const createLightship = async (
           'beacon has been killed',
         );
 
-        beacons.splice(beacons.indexOf(beacon), 1);
+        beacons.splice(beaconIndex, 1);
 
         eventEmitter.emit('beaconStateChange');
 

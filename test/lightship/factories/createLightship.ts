@@ -465,6 +465,47 @@ test('presence of live beacons suspend the shutdown routine', async () => {
   expect(terminate).not.toHaveBeenCalled();
 });
 
+test('killing the same beacon multiple times does not kill other beacons', async () => {
+  const terminate = vi.fn();
+
+  const lightship = await createLightship({
+    shutdownDelay: 0,
+    terminate,
+  });
+
+  let shutdown: (() => void) | undefined;
+
+  const shutdownHandler = vi.fn(async () => {
+    await new Promise<void>((resolve) => {
+      shutdown = resolve;
+    });
+  });
+
+  lightship.registerShutdownHandler(shutdownHandler);
+
+  const beacon0 = lightship.createBeacon();
+  const beacon1 = lightship.createBeacon();
+
+  void lightship.shutdown();
+
+  await beacon0.die();
+  await beacon0.die();
+
+  expect(shutdownHandler).not.toHaveBeenCalled();
+
+  await beacon1.die();
+
+  expect(shutdownHandler).toHaveBeenCalledTimes(1);
+
+  if (!shutdown) {
+    throw new Error('Unexpected state.');
+  }
+
+  shutdown();
+
+  expect(terminate).not.toHaveBeenCalled();
+});
+
 test('delays shutdown handlers', async () => {
   const terminate = vi.fn();
 
