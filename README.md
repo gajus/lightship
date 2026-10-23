@@ -353,7 +353,9 @@ Use `shutdown` method to change server state to "SERVER_IS_SHUTTING_DOWN", e.g.
 
 ```js
 import express from 'express';
-import delay from 'delay';
+import {
+  createHttpTerminator
+} from 'http-terminator';
 import {
   createLightship
 } from 'lightship';
@@ -388,14 +390,16 @@ app.get('/', (req, res) => {
 
 const server = app.listen(8080);
 
+const httpTerminator = createHttpTerminator({
+  server
+});
+
 const lightship = await createLightship();
 
 lightship.registerShutdownHandler(async () => {
-  // Allow sufficient amount of time to allow all of the existing
-  // HTTP requests to finish before terminating the service.
-  await delay(minute);
-
-  server.close();
+  // Allow the existing HTTP requests to finish and close
+  // keep-alive connections before terminating the service.
+  await httpTerminator.terminate();
 });
 
 // Lightship default state is "SERVER_IS_NOT_READY". Therefore, you must signal
@@ -492,6 +496,27 @@ Properly shutting down an application includes these steps:
 2. Close all keep-alive connections that aren't in the middle of a request,
 3. Wait for all active requests to finish, and then
 4. Shut down completely.
+
+Lightship takes care of the delay in the first step: when the shutdown starts, `/ready` begins to respond with `SERVER_IS_NOT_READY`, and the shutdown handlers are called only after `shutdownDelay` milliseconds. You do not need to add a delay of your own.
+
+The remaining steps are the responsibility of your shutdown handler. `server.close()` alone does not complete them: it closes idle keep-alive connections, but a keep-alive connection that is serving a request when the shutdown starts stays open after the response is sent. That keeps the process alive, and Lightship forcefully terminates it (see [Timeouts](#timeouts)), cutting off any requests that are still in flight. Use [`http-terminator`](https://github.com/gajus/http-terminator) to close keep-alive connections and wait for the active requests to finish, e.g.
+
+```js
+import {
+  createHttpTerminator
+} from 'http-terminator';
+
+const httpTerminator = createHttpTerminator({
+  server
+});
+
+lightship.registerShutdownHandler(async () => {
+  await httpTerminator.terminate();
+});
+
+```
+
+`http-terminator` waits up to `gracefulTerminationTimeout` (default: 1 second) for the active requests to finish before closing their connections. Keep it lower than Lightship's `shutdownHandlerTimeout`.
 
 See [Handling Client Requests Properly with Kubernetes](https://web.archive.org/web/20200807161820/https://freecontent.manning.com/handling-client-requests-properly-with-kubernetes/) for more information.
 
